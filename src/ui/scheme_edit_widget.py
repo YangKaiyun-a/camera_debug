@@ -79,7 +79,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         # 主布局
         main_vlayout = QtWidgets.QVBoxLayout(main_widget)
         main_vlayout.setSpacing(20)
-        main_vlayout.setContentsMargins(9, 0, 9, 0)
+        main_vlayout.setContentsMargins(9, 9, 9, 0)
         main_vlayout.addLayout(hlayout_1)
         main_vlayout.addLayout(hlayout_2)
         main_vlayout.addLayout(hlayout_3)
