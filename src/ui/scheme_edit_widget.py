@@ -13,6 +13,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.init_data()
         self.init_ui()
         self.init_slots()
+        self.setFocus()
 
     def init_data(self):
         pass
