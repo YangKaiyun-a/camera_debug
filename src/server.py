@@ -1,13 +1,9 @@
-import sys
 import os
+import sys
 from datetime import datetime
 
 # 将 thrift 生成目录加入 sys.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../thrift/gen-py'))
-
-from thrift.server import TServer
-from thrift.protocol import TBinaryProtocol
-from thrift.transport import TSocket, TTransport
 
 # 导入生成的 Thrift 接口
 from hello import HelloService

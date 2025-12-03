@@ -2,3 +2,7 @@
 src/ui/__pycache__/
 
 .idea/
+
+src/__pycache__/
+
+thrift/gen-py/
