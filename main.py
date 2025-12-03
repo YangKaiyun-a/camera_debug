@@ -40,7 +40,6 @@ if __name__ == "__main__":
     except Exception as e:
         print("Failed to load QSS:", e)
 
-
     w = MainWindow()
     w.show()
     sys.exit(app.exec_())

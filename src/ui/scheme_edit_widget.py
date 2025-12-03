@@ -2,9 +2,45 @@ from PyQt5 import QtWidgets
 from src.signal_manager import signal_manager
 
 
+class CollapsibleGroupBox(QtWidgets.QGroupBox):
+    def __init__(self, title="", parent=None):
+        super().__init__(title, parent)
+        self.setCheckable(True)
+        self.setChecked(False)
+        self.toggled.connect(self.on_toggled)
+
+        self.vlayout = QtWidgets.QVBoxLayout(self)
+
+        self.content_widget = QtWidgets.QWidget()
+        self.vlayout.addWidget(self.content_widget)
+
+        self.inner_layout = QtWidgets.QVBoxLayout(self.content_widget)
+        self.inner_layout.setContentsMargins(0,0,0,0)
+        self.inner_layout.setSpacing(5)
+
+        self.on_toggled(False)
+
+    def addWidget(self, w):
+        self.inner_layout.addWidget(w)
+
+    def on_toggled(self, checked):
+        """
+        content_widget 是否可见
+        """
+        self.content_widget.setVisible(checked)
+
+
+
+
+
 class SchemeEditWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.tool_checkboxes = None
+        self.btn_original = None
+        self.btn_enlarg = None
+        self.btn_shrink = None
+        self.btn_show_crossing_line = None
         self.btn_cancel = None
         self.btn_ok = None
         self.init()
@@ -19,12 +55,22 @@ class SchemeEditWidget(QtWidgets.QWidget):
         pass
 
     def init_ui(self):
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+
+        # 主布局
+        outer_layout = QtWidgets.QVBoxLayout(self)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        outer_layout.addWidget(scroll)
+
+        # 滚动主页面
         main_widget = QtWidgets.QWidget()
         main_widget.setStyleSheet(
             """
-            background-color: #e8e8e8; 
+            background-color: #e8e8e8;
             """
         )
+        scroll.setWidget(main_widget)
 
         lab_exposure_time = QtWidgets.QLabel()
         lab_exposure_time.setText("曝光时间")
@@ -79,18 +125,44 @@ class SchemeEditWidget(QtWidgets.QWidget):
         hlayout_6.addWidget(lab_white_balance_B)
         hlayout_6.addWidget(edit_white_balance_B)
 
+        self.btn_show_crossing_line = QtWidgets.QPushButton()
+        self.btn_show_crossing_line.setText("十字辅助线")
+        self.btn_shrink = QtWidgets.QPushButton()
+        self.btn_shrink.setText("缩小图像")
+        self.btn_enlarg = QtWidgets.QPushButton()
+        self.btn_enlarg.setText("放大图像")
+        self.btn_original = QtWidgets.QPushButton()
+        self.btn_original.setText("原比例图像")
+        hlayout_7 = QtWidgets.QHBoxLayout()
+        hlayout_7.addWidget(self.btn_show_crossing_line)
+        hlayout_7.addWidget(self.btn_shrink)
+        hlayout_7.addWidget(self.btn_enlarg)
+        hlayout_7.addWidget(self.btn_original)
+
+        # 可折叠工具组
+        tools_group = CollapsibleGroupBox("选择工具")
+        tools_group.setChecked(False)  # 默认收起
+
+        # 动态添加工具
+        self.tool_checkboxes = []
+        for i in range(20):
+            cb = QtWidgets.QCheckBox(f"工具 {i + 1}")
+            self.tool_checkboxes.append(cb)
+            tools_group.addWidget(cb)
+
+
         self.btn_ok = QtWidgets.QPushButton()
         self.btn_ok.setText("保存")
         self.btn_cancel = QtWidgets.QPushButton()
         self.btn_cancel.setText("取消")
-        hlayout_7 = QtWidgets.QHBoxLayout()
-        hlayout_7.addWidget(self.btn_ok)
-        hlayout_7.addWidget(self.btn_cancel)
+        hlayout_8 = QtWidgets.QHBoxLayout()
+        hlayout_8.addWidget(self.btn_ok)
+        hlayout_8.addWidget(self.btn_cancel)
 
-        # 主布局
+        # 滚动页面主布局
         main_vlayout = QtWidgets.QVBoxLayout(main_widget)
         main_vlayout.setSpacing(20)
-        main_vlayout.setContentsMargins(9, 9, 9, 0)
+        main_vlayout.setContentsMargins(9, 9, 9, 9)
         main_vlayout.addLayout(hlayout_1)
         main_vlayout.addLayout(hlayout_2)
         main_vlayout.addLayout(hlayout_3)
@@ -98,11 +170,9 @@ class SchemeEditWidget(QtWidgets.QWidget):
         main_vlayout.addLayout(hlayout_5)
         main_vlayout.addLayout(hlayout_6)
         main_vlayout.addLayout(hlayout_7)
+        main_vlayout.addWidget(tools_group)
+        main_vlayout.addLayout(hlayout_8)
         main_vlayout.addStretch(1)
-
-        outer_layout = QtWidgets.QVBoxLayout(self)
-        outer_layout.setContentsMargins(0, 0, 0, 0)
-        outer_layout.addWidget(main_widget)
 
 
     def init_slots(self):
