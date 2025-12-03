@@ -1,12 +1,9 @@
+import os
 import sys
-from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton, QVBoxLayout, QWidget,
-    QStackedWidget
- )
+from PyQt5.QtWidgets import QApplication, QMainWindow,QStackedWidget
+from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 
-from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, qDebug
-
-from PyQt5.QtGui import QPixmap, QPainter, QPen, QImage
-from PyQt5.QtCore import Qt, QRect
+from src.signal_manager import signal_manager
 from src.ui.main_window import Ui_MainWindow
 from src.ui.scheme_edit_widget import SchemeEditWidget
 from src.ui.device_info_widget import DeviceInfoWidget
@@ -46,6 +43,8 @@ class MainWindow(QMainWindow,  Ui_MainWindow):
         self.btn_edit_shceme.clicked.connect(self.on_btn_edit_shceme_clicked)
         self.btn_load_shceme.clicked.connect(self.on_btn_load_shceme_clicked)
         self.btn_switch_device.clicked.connect(self.on_btn_switch_device_clicked)
+        signal_manager.sig_switch_device.connect(self.on_sig_switch_device)
+        signal_manager.sig_edit_scheme.connect(self.on_sig_edit_scheme)
 
     def show_stackedWidget(self, visible):
         anim = QPropertyAnimation(self.stackedWidget, b"minimumWidth")
@@ -58,19 +57,57 @@ class MainWindow(QMainWindow,  Ui_MainWindow):
         else:
             anim.setStartValue(self.stackedWidget.width())
             anim.setEndValue(0)
+
+        self.btn_load_shceme.setEnabled(not visible)
+        self.btn_edit_shceme.setEnabled(not visible)
+        self.btn_switch_device.setEnabled(not visible)
+        self.comboBox_scheme.setEnabled(not visible)
+
         anim.start()
         self.anim = anim  # 防止垃圾回收
 
+    def on_btn_load_shceme_clicked(self):
+        """
+        加载方案
+        TODO: 加载方案
+        """
+        pass
+
     def on_btn_edit_shceme_clicked(self):
+        """
+        编辑方案
+        """
         self.stackedWidget.setCurrentIndex(0)
         self.show_stackedWidget(True)
 
-    def on_btn_load_shceme_clicked(self):
-        pass
+    def on_sig_edit_scheme(self, result):
+        """
+        处理编辑方案的结果
+        参数1：保存/取消
+        TODO: 保存编辑好的方案
+        """
+        # 关闭右侧页面
+        self.show_stackedWidget(False)
+
 
     def on_btn_switch_device_clicked(self):
+        """
+        切换设备
+        """
         self.stackedWidget.setCurrentIndex(1)
         self.show_stackedWidget(True)
+
+    def on_sig_switch_device(self, result):
+        """
+        处理切换设备的结果
+        参数1：切换/取消
+        TODO: 切换设备逻辑
+        """
+        # 关闭右侧页面
+        self.show_stackedWidget(False)
+
+
+
 
     # def on_btn_modify_ip_clicked(self):
     #     if self.btn_ip.text() == "编辑":
@@ -100,6 +137,15 @@ class MainWindow(QMainWindow,  Ui_MainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    try:
+        qss_path = os.path.join(os.path.dirname(__file__), "src/style/style.qss")
+        with open(qss_path, "r", encoding="utf-8") as f:
+            app.setStyleSheet(f.read())
+    except Exception as e:
+        print("Failed to load QSS:", e)
+
+
     w = MainWindow()
     w.show()
     sys.exit(app.exec_())

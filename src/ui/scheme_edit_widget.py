@@ -1,10 +1,12 @@
 from PyQt5 import QtWidgets
+from src.signal_manager import signal_manager
+
 
 class SchemeEditWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.btn_new_shceme = None
-        self.btn_import_shceme = None
+        self.btn_cancel = None
+        self.btn_ok = None
         self.init()
 
     def init(self):
@@ -76,6 +78,14 @@ class SchemeEditWidget(QtWidgets.QWidget):
         hlayout_6.addWidget(lab_white_balance_B)
         hlayout_6.addWidget(edit_white_balance_B)
 
+        self.btn_ok = QtWidgets.QPushButton()
+        self.btn_ok.setText("保存")
+        self.btn_cancel = QtWidgets.QPushButton()
+        self.btn_cancel.setText("取消")
+        hlayout_7 = QtWidgets.QHBoxLayout()
+        hlayout_7.addWidget(self.btn_ok)
+        hlayout_7.addWidget(self.btn_cancel)
+
         # 主布局
         main_vlayout = QtWidgets.QVBoxLayout(main_widget)
         main_vlayout.setSpacing(20)
@@ -86,6 +96,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         main_vlayout.addLayout(hlayout_4)
         main_vlayout.addLayout(hlayout_5)
         main_vlayout.addLayout(hlayout_6)
+        main_vlayout.addLayout(hlayout_7)
         main_vlayout.addStretch(1)
 
         outer_layout = QtWidgets.QVBoxLayout(self)
@@ -94,4 +105,17 @@ class SchemeEditWidget(QtWidgets.QWidget):
 
 
     def init_slots(self):
-        pass
+        self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
+        self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
+
+    def on_btn_ok_clicked(self):
+        """
+        切换按钮槽函数
+        """
+        signal_manager.sig_edit_scheme.emit(True)
+
+    def on_btn_cancel_clicked(self):
+        """
+        取消按钮槽函数
+        """
+        signal_manager.sig_edit_scheme.emit(False)

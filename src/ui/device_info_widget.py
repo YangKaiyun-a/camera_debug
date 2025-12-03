@@ -1,13 +1,18 @@
 from PyQt5 import QtWidgets
+from src.signal_manager import signal_manager
+
 
 class DeviceInfoWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.btn_cancel = None
+        self.btn_ok = None
         self.init()
 
     def init(self):
         self.init_data()
         self.init_ui()
+        self.init_slots()
 
     def init_data(self):
         pass
@@ -75,6 +80,13 @@ class DeviceInfoWidget(QtWidgets.QWidget):
         hlayout_6.addWidget(lab_gateway)
         hlayout_6.addWidget(lab_gateway_value)
 
+        self.btn_ok = QtWidgets.QPushButton()
+        self.btn_ok.setText("切换")
+        self.btn_cancel = QtWidgets.QPushButton()
+        self.btn_cancel.setText("取消")
+        hlayout_7 = QtWidgets.QHBoxLayout()
+        hlayout_7.addWidget(self.btn_ok)
+        hlayout_7.addWidget(self.btn_cancel)
 
         # 主布局
         main_vlayout = QtWidgets.QVBoxLayout(main_widget)
@@ -86,8 +98,25 @@ class DeviceInfoWidget(QtWidgets.QWidget):
         main_vlayout.addLayout(hlayout_4)
         main_vlayout.addLayout(hlayout_5)
         main_vlayout.addLayout(hlayout_6)
+        main_vlayout.addLayout(hlayout_7)
         main_vlayout.addStretch(1)
 
         outer_layout = QtWidgets.QVBoxLayout(self)
         outer_layout.setContentsMargins(0, 0, 0, 0)
         outer_layout.addWidget(main_widget)
+        
+    def init_slots(self):
+        self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
+        self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
+
+    def on_btn_ok_clicked(self):
+        """
+        切换按钮槽函数
+        """
+        signal_manager.sig_switch_device.emit(True)
+
+    def on_btn_cancel_clicked(self):
+        """
+        取消按钮槽函数
+        """
+        signal_manager.sig_switch_device.emit(False)
