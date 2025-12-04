@@ -12,10 +12,10 @@ class SignalManager(QObject):
 
 
     """
-    信号：编辑方案
+    信号：关闭右侧编辑页面
     参数1：保存 or 取消
     """
-    sig_edit_scheme = pyqtSignal(bool)
+    sig_close_scheme_widget = pyqtSignal()
 
 
 

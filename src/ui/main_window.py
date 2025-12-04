@@ -7,7 +7,7 @@ from PyQt5.uic import loadUi
 from src.config.signal_manager import signal_manager
 from src.ui.scheme_edit_widget import SchemeEditWidget
 from src.ui.device_info_widget import DeviceInfoWidget
-from src.config.define import SchemeConfig
+from src.config.utils import SchemeConfig
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -48,7 +48,8 @@ class MainWindow(QMainWindow):
             white_balance_G="110",
             white_balance_B="100",
             tools=[1, 3],
-            save_path="D:/image"
+            image_path="D:/image",
+            scheme_name="方案A"
         )
 
         scheme_edit_wgt = SchemeEditWidget(scheme)
@@ -68,7 +69,7 @@ class MainWindow(QMainWindow):
         self.btn_switch_device.clicked.connect(self.on_btn_switch_device_clicked)
 
         signal_manager.sig_switch_device.connect(self.on_sig_switch_device)
-        signal_manager.sig_edit_scheme.connect(self.on_sig_edit_scheme)
+        signal_manager.sig_close_scheme_widget.connect(self.on_close_scheme_widget)
 
     def show_stackedWidget(self, visible):
         anim = QPropertyAnimation(self.stackedWidget, b"minimumWidth")
@@ -104,23 +105,20 @@ class MainWindow(QMainWindow):
 
     def on_btn_edit_shceme_clicked(self):
         """
-        编辑方案
+        编辑方案按钮槽函数
         """
         self.stackedWidget.setCurrentIndex(0)
         self.show_stackedWidget(True)
 
-    def on_sig_edit_scheme(self, result):
+    def on_close_scheme_widget(self):
         """
-        处理编辑方案的结果
-        参数1：保存/取消
-        TODO: 保存编辑好的方案
+        关闭右侧编辑页面
         """
-        # 关闭右侧页面
         self.show_stackedWidget(False)
 
     def on_btn_switch_device_clicked(self):
         """
-        切换设备
+        切换设备按钮槽函数
         """
         self.stackedWidget.setCurrentIndex(1)
         self.show_stackedWidget(True)

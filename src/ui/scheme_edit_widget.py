@@ -1,6 +1,8 @@
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QMessageBox
+
 from src.config.signal_manager import signal_manager
-from src.config.define import SchemeConfig
+from src.config.utils import SchemeConfig, save_scheme_config
 from thrift_interface.gen.SampleReg_Defs import ttypes
 
 
@@ -58,8 +60,8 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.spin_focal_length = None           # 焦距步进
         self.spin_add = None                    # 增益
         self.spin_exposure_time = None          # 曝光时间
-        self.lab_path = None                    # 存图路径
-        self.btn_path = None
+        self.lab_image_path = None              # 存图路径
+        self.btn_image_path = None
         self.tool_checkboxes = []             # 收集所有工具
         self.btn_cancel = None
         self.btn_ok = None
@@ -168,14 +170,14 @@ class SchemeEditWidget(QtWidgets.QWidget):
 
 
         # 存图路径
-        self.btn_path = QtWidgets.QPushButton()
-        self.btn_path.setFixedSize(90, 25)
-        self.btn_path.setText("选择存图路径")
-        self.lab_path = QtWidgets.QLabel()
-        self.lab_path.setText("存图路径")
+        self.btn_image_path = QtWidgets.QPushButton()
+        self.btn_image_path.setFixedSize(90, 25)
+        self.btn_image_path.setText("选择存图路径")
+        self.lab_image_path = QtWidgets.QLabel()
+        self.lab_image_path.setText("存图路径")
         hlayout_7 = QtWidgets.QHBoxLayout()
-        hlayout_7.addWidget(self.btn_path)
-        hlayout_7.addWidget(self.lab_path)
+        hlayout_7.addWidget(self.btn_image_path)
+        hlayout_7.addWidget(self.lab_image_path)
 
 
         self.btn_ok = QtWidgets.QPushButton()
@@ -205,28 +207,45 @@ class SchemeEditWidget(QtWidgets.QWidget):
     def init_slots(self):
         self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
         self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
-        self.btn_path.clicked.connect(self.on_btn_path_clicked)
+        self.btn_image_path.clicked.connect(self.on_btn_image_path_clicked)
 
     def on_btn_ok_clicked(self):
         """
         保存按钮槽函数
         """
-        # 选中的工具
-        selected_tools = [
-            cb.enum_value for cb in self.tool_checkboxes if cb.isChecked()
-        ]
+        # 组合结构体
+        self.scheme.exposure_time = self.spin_exposure_time.value()
+        self.scheme.gain = self.spin_add.value()
+        self.scheme.focal_length_step = self.spin_focal_length.value()
+        self.scheme.focal_point = self.spin_focal_point.value()
 
-        signal_manager.sig_edit_scheme.emit(True)
+        self.scheme.white_balance_R = self.edit_white_balance_R.text()
+        self.scheme.white_balance_G = self.edit_white_balance_G.text()
+        self.scheme.white_balance_B = self.edit_white_balance_B.text()
+
+        selected_tools = [ cb.enum_value for cb in self.tool_checkboxes if cb.isChecked()]
+
+        self.scheme.image_path = self.lab_image_path.text()
+
+        # 保存
+        ok, msg = save_scheme_config(self.scheme)
+
+        if ok:
+            QMessageBox.information(self, "成功", f"方案已保存到：\n{msg}")
+            signal_manager.sig_close_scheme_widget.emit()
+        else:
+            QMessageBox.critical(self, "保存失败", msg)
+
 
     def on_btn_cancel_clicked(self):
         """
         取消按钮槽函数
         """
-        signal_manager.sig_edit_scheme.emit(False)
+        signal_manager.sig_close_scheme_widget.emit()
 
-    def on_btn_path_clicked(self):
+    def on_btn_image_path_clicked(self):
         """
-        选择路径按钮槽函数（选择文件夹）
+        选择存图路径按钮槽函数
         """
         folder = QtWidgets.QFileDialog.getExistingDirectory(
             self,
@@ -236,6 +255,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         )
 
         if folder:
-            self.lab_path.setText(folder)
+            self.lab_image_path.setText(folder)
 
 

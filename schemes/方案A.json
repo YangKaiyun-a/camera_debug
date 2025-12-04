@@ -1,0 +1,16 @@
+{
+    "exposure_time": 50,
+    "gain": 10,
+    "focal_length_step": 3,
+    "focal_point": 99,
+    "white_balance_R": "120",
+    "white_balance_G": "110",
+    "white_balance_B": "100",
+    "tools": [
+        1,
+        3
+    ],
+    "image_path": "存图路径",
+    "scheme_name": "方案A",
+    "scheme_path": "F:\\workspace_github\\camera_debug\\schemes"
+}
