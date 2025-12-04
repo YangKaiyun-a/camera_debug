@@ -380,12 +380,12 @@ struct TaskResult {
 
 /**
  * 任务信息结构体
- * 包含任务描述、状态及执行结果
+ * 包含任务描述、状态及执行结果 
  */
 struct TaskInfo {
     1: string taskId;                                  // 任务唯一ID（必填）
     2: list<TaskType> taskType;                        // 任务类型列表（支持批量任务）
-    3: TaskState state = TaskState.NoneVal;               // 任务执行状态（默认未执行）
+    3: TaskState state = TaskState.NoneVal;            // 任务执行状态（默认未执行）
     4: i32 mode;                                       // 识别模式：0-用输入图像识别，1-拍单张识别，2-拍多张（整圈）识别
     5: optional list<ImageInfo> imageIn;               // 输入图像（mode=0时必填）
     6: optional i32 retCode;                           // 返回码：0-成功，非0-错误码

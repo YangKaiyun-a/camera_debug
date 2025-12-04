@@ -1,4 +1,6 @@
 from PyQt5 import QtWidgets, QtCore
+
+
 from src.signal_manager import signal_manager
 
 
@@ -48,11 +50,9 @@ class CollapsibleSection(QtWidgets.QWidget):
 class SchemeEditWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.lab_path = None                    # 存图路径
+        self.btn_path = None
         self.tool_checkboxes = None             # 收集所有工具
-        self.btn_original = None
-        self.btn_enlarg = None
-        self.btn_shrink = None
-        self.btn_show_crossing_line = None
         self.btn_cancel = None
         self.btn_ok = None
         self.init()
@@ -137,19 +137,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         hlayout_6.addWidget(lab_white_balance_B)
         hlayout_6.addWidget(edit_white_balance_B)
 
-        self.btn_show_crossing_line = QtWidgets.QPushButton()
-        self.btn_show_crossing_line.setText("十字辅助线")
-        self.btn_shrink = QtWidgets.QPushButton()
-        self.btn_shrink.setText("缩小图像")
-        self.btn_enlarg = QtWidgets.QPushButton()
-        self.btn_enlarg.setText("放大图像")
-        self.btn_original = QtWidgets.QPushButton()
-        self.btn_original.setText("原比例图像")
-        hlayout_7 = QtWidgets.QHBoxLayout()
-        hlayout_7.addWidget(self.btn_show_crossing_line)
-        hlayout_7.addWidget(self.btn_shrink)
-        hlayout_7.addWidget(self.btn_enlarg)
-        hlayout_7.addWidget(self.btn_original)
 
         # 可折叠工具组
         tools_group = CollapsibleSection("选择工具")
@@ -159,6 +146,17 @@ class SchemeEditWidget(QtWidgets.QWidget):
             cb = QtWidgets.QCheckBox(f"工具 {i + 1}")
             self.tool_checkboxes.append(cb)
             tools_group.addWidget(cb)
+
+
+        # 存图路径
+        self.btn_path = QtWidgets.QPushButton()
+        self.btn_path.setFixedSize(90, 25)
+        self.btn_path.setText("选择存图路径")
+        self.lab_path = QtWidgets.QLabel()
+        self.lab_path.setText("存图路径")
+        hlayout_7 = QtWidgets.QHBoxLayout()
+        hlayout_7.addWidget(self.btn_path)
+        hlayout_7.addWidget(self.lab_path)
 
 
         self.btn_ok = QtWidgets.QPushButton()
@@ -188,10 +186,11 @@ class SchemeEditWidget(QtWidgets.QWidget):
     def init_slots(self):
         self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
         self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
+        self.btn_path.clicked.connect(self.on_btn_path_clicked)
 
     def on_btn_ok_clicked(self):
         """
-        切换按钮槽函数
+        保存按钮槽函数
         """
         signal_manager.sig_edit_scheme.emit(True)
 
@@ -200,3 +199,19 @@ class SchemeEditWidget(QtWidgets.QWidget):
         取消按钮槽函数
         """
         signal_manager.sig_edit_scheme.emit(False)
+
+    def on_btn_path_clicked(self):
+        """
+        选择路径按钮槽函数（选择文件夹）
+        """
+        folder = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "选择文件夹",
+            "",
+            QtWidgets.QFileDialog.ShowDirsOnly
+        )
+
+        if folder:
+            self.lab_path.setText(folder)
+
+

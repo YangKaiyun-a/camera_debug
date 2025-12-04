@@ -13,7 +13,7 @@ class SignalManager(QObject):
 
     """
     信号：编辑方案
-    参数1：切换 or 取消
+    参数1：保存 or 取消
     """
     sig_edit_scheme = pyqtSignal(bool)
 
