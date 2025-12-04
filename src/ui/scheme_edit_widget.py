@@ -1,33 +1,45 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from src.signal_manager import signal_manager
 
 
-class CollapsibleGroupBox(QtWidgets.QGroupBox):
+
+class CollapsibleSection(QtWidgets.QWidget):
     def __init__(self, title="", parent=None):
-        super().__init__(title, parent)
-        self.setCheckable(True)
-        self.setChecked(False)
-        self.toggled.connect(self.on_toggled)
+        super().__init__(parent)
 
-        self.vlayout = QtWidgets.QVBoxLayout(self)
+        # 三角按钮
+        self.toggle_button = QtWidgets.QToolButton(text=title, checkable=True)
+        self.toggle_button.setStyleSheet("QToolButton { border: none; }")
+        self.toggle_button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
+        self.toggle_button.setChecked(False)
+        self.toggle_button.clicked.connect(self.on_toggled)
 
-        self.content_widget = QtWidgets.QWidget()
-        self.vlayout.addWidget(self.content_widget)
+        # 内容区域
+        self.content_area = QtWidgets.QWidget()
+        self.content_area.setVisible(False)
 
-        self.inner_layout = QtWidgets.QVBoxLayout(self.content_widget)
-        self.inner_layout.setContentsMargins(0,0,0,0)
+        # 布局
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.addWidget(self.toggle_button)
+        main_layout.addWidget(self.content_area)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(2)
+
+        self.inner_layout = QtWidgets.QVBoxLayout(self.content_area)
+        self.inner_layout.setContentsMargins(15, 5, 5, 5)
         self.inner_layout.setSpacing(5)
-
-        self.on_toggled(False)
 
     def addWidget(self, w):
         self.inner_layout.addWidget(w)
 
-    def on_toggled(self, checked):
-        """
-        content_widget 是否可见
-        """
-        self.content_widget.setVisible(checked)
+    def on_toggled(self):
+        checked = self.toggle_button.isChecked()
+        self.toggle_button.setArrowType(
+            QtCore.Qt.DownArrow if checked else QtCore.Qt.RightArrow
+        )
+        self.content_area.setVisible(checked)
+
 
 
 
@@ -36,7 +48,7 @@ class CollapsibleGroupBox(QtWidgets.QGroupBox):
 class SchemeEditWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.tool_checkboxes = None
+        self.tool_checkboxes = None             # 收集所有工具
         self.btn_original = None
         self.btn_enlarg = None
         self.btn_shrink = None
@@ -140,9 +152,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         hlayout_7.addWidget(self.btn_original)
 
         # 可折叠工具组
-        tools_group = CollapsibleGroupBox("选择工具")
-        tools_group.setChecked(False)  # 默认收起
-
+        tools_group = CollapsibleSection("选择工具")
         # 动态添加工具
         self.tool_checkboxes = []
         for i in range(20):
