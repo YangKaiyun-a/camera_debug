@@ -1,7 +1,10 @@
 import os
 import sys
+
 from PyQt5.QtWidgets import QApplication
 from src.ui.main_window import MainWindow
+
+
 
 
 

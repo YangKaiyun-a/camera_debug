@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtCore
-
-
-from src.signal_manager import signal_manager
+from src.config.signal_manager import signal_manager
+from src.config.define import SchemeConfig
+from thrift_interface.gen.SampleReg_Defs import ttypes
 
 
 
@@ -48,11 +48,19 @@ class CollapsibleSection(QtWidgets.QWidget):
 
 
 class SchemeEditWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, scheme: SchemeConfig, parent=None):
         super().__init__(parent)
+        self.scheme = scheme                    # 保存结构体
+        self.edit_white_balance_B = None        # B
+        self.edit_white_balance_G = None        # G
+        self.edit_white_balance_R = None        # R
+        self.spin_focal_point = None            # 焦点位置
+        self.spin_focal_length = None           # 焦距步进
+        self.spin_add = None                    # 增益
+        self.spin_exposure_time = None          # 曝光时间
         self.lab_path = None                    # 存图路径
         self.btn_path = None
-        self.tool_checkboxes = None             # 收集所有工具
+        self.tool_checkboxes = []             # 收集所有工具
         self.btn_cancel = None
         self.btn_ok = None
         self.init()
@@ -86,31 +94,35 @@ class SchemeEditWidget(QtWidgets.QWidget):
 
         lab_exposure_time = QtWidgets.QLabel()
         lab_exposure_time.setText("曝光时间")
-        spin_exposure_time = QtWidgets.QSpinBox()
+        self.spin_exposure_time = QtWidgets.QSpinBox()
+        self.spin_exposure_time.setValue(self.scheme.exposure_time)
         hlayout_1 = QtWidgets.QHBoxLayout()
         hlayout_1.addWidget(lab_exposure_time)
-        hlayout_1.addWidget(spin_exposure_time)
+        hlayout_1.addWidget(self.spin_exposure_time)
 
         lab_add = QtWidgets.QLabel()
         lab_add.setText("增益")
-        spin_add = QtWidgets.QSpinBox()
+        self.spin_add = QtWidgets.QSpinBox()
+        self.spin_add.setValue(self.scheme.gain)
         hlayout_2 = QtWidgets.QHBoxLayout()
         hlayout_2.addWidget(lab_add)
-        hlayout_2.addWidget(spin_add)
+        hlayout_2.addWidget(self.spin_add)
 
         lab_focal_length = QtWidgets.QLabel()
         lab_focal_length.setText("焦距步进")
-        spin_focal_length = QtWidgets.QSpinBox()
+        self.spin_focal_length = QtWidgets.QSpinBox()
+        self.spin_focal_length.setValue(self.scheme.focal_length_step)
         hlayout_3 = QtWidgets.QHBoxLayout()
         hlayout_3.addWidget(lab_focal_length)
-        hlayout_3.addWidget(spin_focal_length)
+        hlayout_3.addWidget(self.spin_focal_length)
 
         lab_focal_point = QtWidgets.QLabel()
         lab_focal_point.setText("焦点位置")
-        spin_focal_point = QtWidgets.QSpinBox()
+        self.spin_focal_point = QtWidgets.QSpinBox()
+        self.spin_focal_point.setValue(self.scheme.focal_point)
         hlayout_4 = QtWidgets.QHBoxLayout()
         hlayout_4.addWidget(lab_focal_point)
-        hlayout_4.addWidget(spin_focal_point)
+        hlayout_4.addWidget(self.spin_focal_point)
 
         lab_white_balance = QtWidgets.QLabel()
         lab_white_balance.setText("白平衡参数")
@@ -122,28 +134,35 @@ class SchemeEditWidget(QtWidgets.QWidget):
 
         lab_white_balance_R = QtWidgets.QLabel()
         lab_white_balance_R.setText("R")
-        edit_white_balance_R = QtWidgets.QLineEdit()
+        self.edit_white_balance_R = QtWidgets.QLineEdit()
+        self.edit_white_balance_R.setText(self.scheme.white_balance_R)
         lab_white_balance_G = QtWidgets.QLabel()
         lab_white_balance_G.setText("G")
-        edit_white_balance_G = QtWidgets.QLineEdit()
+        self.edit_white_balance_G = QtWidgets.QLineEdit()
+        self.edit_white_balance_G.setText(self.scheme.white_balance_G)
         lab_white_balance_B = QtWidgets.QLabel()
         lab_white_balance_B.setText("B")
-        edit_white_balance_B = QtWidgets.QLineEdit()
+        self.edit_white_balance_B = QtWidgets.QLineEdit()
+        self.edit_white_balance_B.setText(self.scheme.white_balance_B)
         hlayout_6 = QtWidgets.QHBoxLayout()
         hlayout_6.addWidget(lab_white_balance_R)
-        hlayout_6.addWidget(edit_white_balance_R)
+        hlayout_6.addWidget(self.edit_white_balance_R)
         hlayout_6.addWidget(lab_white_balance_G)
-        hlayout_6.addWidget(edit_white_balance_G)
+        hlayout_6.addWidget(self.edit_white_balance_G)
         hlayout_6.addWidget(lab_white_balance_B)
-        hlayout_6.addWidget(edit_white_balance_B)
+        hlayout_6.addWidget(self.edit_white_balance_B)
 
 
         # 可折叠工具组
         tools_group = CollapsibleSection("选择工具")
-        # 动态添加工具
-        self.tool_checkboxes = []
-        for i in range(20):
-            cb = QtWidgets.QCheckBox(f"工具 {i + 1}")
+        for value, name in ttypes.TaskType._VALUES_TO_NAMES.items():
+            cb = QtWidgets.QCheckBox(name)
+            cb.enum_value = value
+
+            # 自动勾选 —— 判断当前方案是否包含该工具
+            if self.scheme and value in self.scheme.tools:
+                cb.setChecked(True)
+
             self.tool_checkboxes.append(cb)
             tools_group.addWidget(cb)
 
@@ -192,6 +211,11 @@ class SchemeEditWidget(QtWidgets.QWidget):
         """
         保存按钮槽函数
         """
+        # 选中的工具
+        selected_tools = [
+            cb.enum_value for cb in self.tool_checkboxes if cb.isChecked()
+        ]
+
         signal_manager.sig_edit_scheme.emit(True)
 
     def on_btn_cancel_clicked(self):

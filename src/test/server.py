@@ -2,8 +2,8 @@ import os
 import sys
 from datetime import datetime
 
-# 将 thrift 生成目录加入 sys.path
-sys.path.append(os.path.join(os.path.dirname(__file__), '../thrift/gen-py'))
+# 将 thrift_interface 生成目录加入 sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../thrift_interface/gen-py'))
 
 # 导入生成的 Thrift 接口
 from hello import HelloService

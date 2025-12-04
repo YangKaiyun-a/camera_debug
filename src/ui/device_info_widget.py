@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from src.signal_manager import signal_manager
+from src.config.signal_manager import signal_manager
 
 
 class DeviceInfoWidget(QtWidgets.QWidget):

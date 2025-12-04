@@ -4,10 +4,10 @@ from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QTimer
 from PyQt5.uic import loadUi
 
 
-from src.signal_manager import signal_manager
+from src.config.signal_manager import signal_manager
 from src.ui.scheme_edit_widget import SchemeEditWidget
 from src.ui.device_info_widget import DeviceInfoWidget
-
+from src.config.define import SchemeConfig
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
         ui_path = os.path.join(os.path.dirname(__file__), "main_window.ui")
         loadUi(ui_path, self)
 
+        self.current_scheme = None      # 当前方案
         self.anim = None
         self.stackedWidget = None
 
@@ -24,17 +25,33 @@ class MainWindow(QMainWindow):
 
 
     def init(self):
+        self.init_Data()
         self.init_stackedWidgets()
         self.init_slots()
 
         self.setFocus()
+
+    def init_Data(self):
+        pass
 
     def init_stackedWidgets(self):
         self.stackedWidget = QStackedWidget()
         self.stackedWidget.setFixedWidth(0)
 
         # 页面1：参数设置
-        scheme_edit_wgt = SchemeEditWidget()
+        scheme = SchemeConfig(
+            exposure_time=50,
+            gain=10,
+            focal_length_step=3,
+            focal_point=100,
+            white_balance_R="120",
+            white_balance_G="110",
+            white_balance_B="100",
+            tools=[1, 3],
+            save_path="D:/image"
+        )
+
+        scheme_edit_wgt = SchemeEditWidget(scheme)
         self.stackedWidget.insertWidget(0, scheme_edit_wgt)
 
         # 页面2：设备列表

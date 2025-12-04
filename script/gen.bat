@@ -9,8 +9,8 @@ echo ===============================================
 REM Current script directory
 set SCRIPT_DIR=%~dp0
 set PROJECT_ROOT=%SCRIPT_DIR%\..
-set THRIFT_DIR=%PROJECT_ROOT%\thrift
-set OUTPUT_DIR=%THRIFT_DIR%\gen-py
+set THRIFT_DIR=%PROJECT_ROOT%\thrift_interface
+set OUTPUT_DIR=%THRIFT_DIR%\gen
 
 REM Change to thrift directory
 cd /d "%THRIFT_DIR%" || (
@@ -18,7 +18,7 @@ cd /d "%THRIFT_DIR%" || (
     exit /b 1
 )
 
-REM Create gen-py directory
+REM Create gen directory
 if not exist "%OUTPUT_DIR%" (
     mkdir "%OUTPUT_DIR%"
 )
