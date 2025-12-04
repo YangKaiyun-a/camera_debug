@@ -48,11 +48,10 @@ class CollapsibleSection(QtWidgets.QWidget):
 
 
 
-
 class SchemeEditWidget(QtWidgets.QWidget):
-    def __init__(self, scheme: SchemeConfig, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.scheme = scheme                    # 保存结构体
+        self.scheme = SchemeConfig()               # 保存结构体
         self.edit_white_balance_B = None        # B
         self.edit_white_balance_G = None        # G
         self.edit_white_balance_R = None        # R
@@ -160,11 +159,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         for value, name in ttypes.TaskType._VALUES_TO_NAMES.items():
             cb = QtWidgets.QCheckBox(name)
             cb.enum_value = value
-
-            # 自动勾选 —— 判断当前方案是否包含该工具
-            if self.scheme and value in self.scheme.tools:
-                cb.setChecked(True)
-
             self.tool_checkboxes.append(cb)
             tools_group.addWidget(cb)
 
@@ -209,6 +203,38 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
         self.btn_image_path.clicked.connect(self.on_btn_image_path_clicked)
 
+    def refresh(self, scheme):
+        """
+        刷新页面
+        """
+        if not isinstance(scheme, SchemeConfig):
+            return
+
+        self.scheme = scheme  # 更新内部结构体
+
+        # ----------- 更新数值控件 -----------
+        self.spin_exposure_time.setValue(scheme.exposure_time)
+        self.spin_add.setValue(scheme.gain)
+        self.spin_focal_length.setValue(scheme.focal_length_step)
+        self.spin_focal_point.setValue(scheme.focal_point)
+
+        # ----------- 白平衡 -----------
+        self.edit_white_balance_R.setText(scheme.white_balance_R)
+        self.edit_white_balance_G.setText(scheme.white_balance_G)
+        self.edit_white_balance_B.setText(scheme.white_balance_B)
+
+        # ----------- 更新存图路径 -----------
+        self.lab_image_path.setText(scheme.image_path)
+
+        # ----------- 更新工具勾选状态 -----------
+        tools_set = set(scheme.tools or [])
+
+        for cb in self.tool_checkboxes:
+            cb.setChecked(cb.enum_value in tools_set)
+
+        # 强制刷新 UI
+        self.update()
+
     def on_btn_ok_clicked(self):
         """
         保存按钮槽函数
@@ -224,7 +250,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.scheme.white_balance_B = self.edit_white_balance_B.text()
 
         selected_tools = [ cb.enum_value for cb in self.tool_checkboxes if cb.isChecked()]
-
+        self.scheme.tools = selected_tools
         self.scheme.image_path = self.lab_image_path.text()
 
         # 保存

@@ -12,3 +12,5 @@ thrift_interface/gen/__pycache__/
 src/config/__pycache__/
 
 thrift_interface/gen/SampleReg_Defs/__pycache__/
+
+schemes/

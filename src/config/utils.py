@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass, asdict
 
 
-# ========== 默认目录定义 根目录/schemes/ ==========
+# ========== 默认目录定义  根目录/schemes/ ==========
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 DEFAULT_SCHEME_DIR = os.path.join(BASE_DIR, "schemes")
 
@@ -25,7 +25,8 @@ class SchemeConfig:
 
     tools: list = None                  # 工具
     image_path: str = ""                # 存图路径
-    scheme_name: str = ""                    # 方案名称
+
+    scheme_name: str = ""                        # 方案名称
     scheme_path: str = DEFAULT_SCHEME_DIR        # 该方案存储路径
 
 

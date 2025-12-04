@@ -8,6 +8,8 @@ from src.config.signal_manager import signal_manager
 from src.ui.scheme_edit_widget import SchemeEditWidget
 from src.ui.device_info_widget import DeviceInfoWidget
 from src.config.utils import SchemeConfig
+from src.config.utils import DEFAULT_SCHEME_DIR
+import json
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -26,33 +28,29 @@ class MainWindow(QMainWindow):
 
     def init(self):
         self.init_Data()
-        self.init_stackedWidgets()
+        self.init_UI()
         self.init_slots()
-
         self.setFocus()
 
     def init_Data(self):
-        pass
+        # 扫描所有 JSON 方案
+        # self.scheme_files = []  # 保存完整路径
+        for filename in os.listdir(DEFAULT_SCHEME_DIR):
+            if filename.endswith(".json"):
+                scheme_name = filename[:-5]  # 去掉 .json
+                self.comboBox_scheme.addItem(scheme_name)
+                # full_path = os.path.join(DEFAULT_SCHEME_DIR, filename)
+                # self.scheme_files.append(full_path)
+
+    def init_UI(self):
+        self.init_stackedWidgets()
 
     def init_stackedWidgets(self):
         self.stackedWidget = QStackedWidget()
         self.stackedWidget.setFixedWidth(0)
 
         # 页面1：参数设置
-        scheme = SchemeConfig(
-            exposure_time=50,
-            gain=10,
-            focal_length_step=3,
-            focal_point=100,
-            white_balance_R="120",
-            white_balance_G="110",
-            white_balance_B="100",
-            tools=[1, 3],
-            image_path="D:/image",
-            scheme_name="方案A"
-        )
-
-        scheme_edit_wgt = SchemeEditWidget(scheme)
+        scheme_edit_wgt = SchemeEditWidget()
         self.stackedWidget.insertWidget(0, scheme_edit_wgt)
 
         # 页面2：设备列表
@@ -96,17 +94,58 @@ class MainWindow(QMainWindow):
             current_page = self.stackedWidget.currentWidget()
             QTimer.singleShot(0, current_page.setFocus)
 
+    def load_scheme_from_file(self, json_path):
+        """
+        从 JSON 文件读取方案并转成 SchemeConfig
+        """
+        if not os.path.exists(json_path):
+            return None
+
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        return SchemeConfig(
+            exposure_time=data.get("exposure_time", 0),
+            gain=data.get("gain", 0),
+            focal_length_step=data.get("focal_length_step", 0),
+            focal_point=data.get("focal_point", 0),
+
+            white_balance_R=data.get("white_balance_R", ""),
+            white_balance_G=data.get("white_balance_G", ""),
+            white_balance_B=data.get("white_balance_B", ""),
+
+            tools=data.get("tools", []),
+            image_path=data.get("image_path", ""),
+
+            scheme_name=data.get("scheme_name", ""),
+            scheme_path=data.get("scheme_path", "")
+        )
+
     def on_btn_load_shceme_clicked(self):
         """
         加载方案
-        TODO: 加载方案
         """
-        pass
+        self.stackedWidget.setCurrentIndex(0)
+        self.show_stackedWidget(True)
 
     def on_btn_edit_shceme_clicked(self):
         """
         编辑方案按钮槽函数
         """
+        scheme_name = self.comboBox_scheme.currentText()
+        if not scheme_name:
+            return
+
+        # JSON 文件路径
+        json_path = os.path.join(DEFAULT_SCHEME_DIR, scheme_name + ".json")
+
+        # 加载 SchemeConfig
+        self.current_scheme = self.load_scheme_from_file(json_path)
+
+        # 更新右侧编辑页面
+        scheme_edit_wgt = self.stackedWidget.widget(0)
+        scheme_edit_wgt.refresh(self.current_scheme)
+
         self.stackedWidget.setCurrentIndex(0)
         self.show_stackedWidget(True)
 
