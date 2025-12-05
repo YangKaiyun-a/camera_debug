@@ -33,14 +33,11 @@ class MainWindow(QMainWindow):
         self.setFocus()
 
     def init_Data(self):
-        # 扫描所有 JSON 方案
-        # self.scheme_files = []  # 保存完整路径
+        # TODO: 当前从软件目录获取方案，后续应该从相机中获取
         for filename in os.listdir(DEFAULT_SCHEME_DIR):
             if filename.endswith(".json"):
                 scheme_name = filename[:-5]  # 去掉 .json
                 self.comboBox_scheme.addItem(scheme_name)
-                # full_path = os.path.join(DEFAULT_SCHEME_DIR, filename)
-                # self.scheme_files.append(full_path)
 
     def init_UI(self):
         self.init_stackedWidgets()

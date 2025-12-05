@@ -238,6 +238,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
     def on_btn_ok_clicked(self):
         """
         保存按钮槽函数
+        TODO: 保存到相机中
         """
         # 组合结构体
         self.scheme.exposure_time = self.spin_exposure_time.value()
