@@ -257,10 +257,10 @@ class SchemeEditWidget(QtWidgets.QWidget):
         ok, msg = save_scheme_config(self.scheme)
 
         if ok:
-            QMessageBox.information(self, "成功", f"方案已保存到：\n{msg}")
+            QMessageBox.information(self, "成功", "方案保存成功")
             signal_manager.sig_close_scheme_widget.emit()
         else:
-            QMessageBox.critical(self, "保存失败", msg)
+            QMessageBox.critical(self, "保存失败", "方案保存失败")
 
 
     def on_btn_cancel_clicked(self):
