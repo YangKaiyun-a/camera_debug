@@ -13,4 +13,8 @@ src/config/__pycache__/
 
 thrift_interface/gen/SampleReg_Defs/__pycache__/
 
-schemes/
+device_config/schemes/
+
+thrift_interface/gen/hello/__pycache__/
+
+thrift_interface/gen/SampleReg_Interface_LC/__pycache__/

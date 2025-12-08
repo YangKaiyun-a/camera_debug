@@ -1,12 +1,8 @@
-# thrift_service.py
 from thrift.server import TServer
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket, TTransport
+from thrift.TMultiplexedProcessor import TMultiplexedProcessor
 
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), 'gen-py'))
-
-from hello import HelloService
 
 class ThriftService:
     def __init__(self, processor_list, port=9090, worker_num=8):
@@ -28,7 +24,6 @@ class ThriftService:
         protocol_factory = TBinaryProtocol.TBinaryProtocolFactory()
 
         # multiplexer
-        from thrift.TMultiplexedProcessor import TMultiplexedProcessor
         mux = TMultiplexedProcessor()
         for name, proc in self.processor_list:
             mux.registerProcessor(name, proc)
@@ -45,16 +40,3 @@ class ThriftService:
         if self.server:
             print("stop server")
             self.server.stop()
-
-
-class HelloHandler:
-    def sayHello(self, name):
-        print(f"收到客户端请求: {name}")
-        return f"你好, {name}! 来自 Thrift 服务端的问候～"
-
-if __name__ == "__main__":
-
-    processor = HelloService.Processor(HelloHandler())
-
-    service = ThriftService([("processor", processor)], port=9090)
-    service.start()

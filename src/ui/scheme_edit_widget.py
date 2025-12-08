@@ -51,7 +51,7 @@ class CollapsibleSection(QtWidgets.QWidget):
 class SchemeEditWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.scheme = SchemeConfig()               # 保存结构体
+        self.scheme = SchemeConfig()            # 保存结构体
         self.edit_white_balance_B = None        # B
         self.edit_white_balance_G = None        # G
         self.edit_white_balance_R = None        # R

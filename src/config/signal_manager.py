@@ -6,14 +6,13 @@ class SignalManager(QObject):
 
     """
     信号：切换设备
-    参数1：切换 or 取消
+    参数1：目标设备
     """
-    sig_switch_device = pyqtSignal(bool)
+    sig_switch_device = pyqtSignal(str)
 
 
     """
     信号：关闭右侧编辑页面
-    参数1：保存 or 取消
     """
     sig_close_scheme_widget = pyqtSignal()
 

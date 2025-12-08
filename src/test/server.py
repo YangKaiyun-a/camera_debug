@@ -1,37 +1,36 @@
-import os
-import sys
-from datetime import datetime
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "thrift_interface", "gen")))
 
-# 将 thrift_interface 生成目录加入 sys.path
-sys.path.append(os.path.join(os.path.dirname(__file__), '../thrift_interface/gen-py'))
 
-# 导入生成的 Thrift 接口
-from hello import HelloService
-from SimpleReg_Interface_UC import SimpleRegUC
-from SimpleReg_Defs import ttypes as defs
-
-from thrift_helper import ThriftService
+from thrift_interface.gen.hello import HelloService
+from thrift_interface.gen.SampleReg_Interface_LC import SampleRegLC
+from src.thrift_helper import ThriftService
 
 
 # =========================================================
 # � 服务端 Handler 实现
 # =========================================================
-class SimpleRegUCHandler(SimpleRegUC.Iface):
+class SimpleRegLCHandler(SampleRegLC.Iface):
     def __init__(self):
-        print("✅ SimpleRegUC Server Initialized")
+        print("✅ SimpleRegLC Server Initialized")
 
-    def HeartbeatToUC(self, timeStamp):
-        print(f"[Heartbeat] Received at {datetime.now().strftime('%H:%M:%S')} | Timestamp: {timeStamp}")
+    def HeartbeatToLC(self, timeStamp):
+        return timeStamp
 
-    def DeviceInfoChanged(self, info):
-        print("[DeviceInfoChanged] Device runningState =", info.runningState)
-        return 0  # 返回 i32
+    def DistributeOper(self, info):
+        print("1")
 
-    def TaskInfoChanged(self, info):
-        print(f"[TaskInfoChanged] taskId={info.taskId}, state={info.state}")
-        if info.info and info.info.barcode:
-            print("  - barcode:", info.info.barcode)
-        return 0  # 返回 i32
+    def DistributeTask(self, info):
+        print("1")
+
+    def GetTaskInfo(self):
+        print("1")
+
+    def GetDeviceInfo(self):
+        print("1")
+
+    def GetOperInfo(self):
+        print("1")
 
 
 class HelloHandler(HelloService.Iface):
@@ -48,13 +47,14 @@ class HelloHandler(HelloService.Iface):
 # =========================================================
 def main():
 
-    processor_1 = SimpleRegUC.Processor(SimpleRegUCHandler())
-    processor_2 = HelloService.Processor(HelloHandler())
+    processor_1 = SampleRegLC.Processor(SimpleRegLCHandler())
 
-    service = ThriftService([("processor_1", processor_1),("processor_2", processor_2)], port=9090)
+    service = ThriftService([("processor_1", processor_1)], port=9090)
     service.start()
 
 
 
 if __name__ == "__main__":
     main()
+
+

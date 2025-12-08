@@ -1,10 +1,14 @@
 from PyQt5 import QtWidgets
 from src.config.signal_manager import signal_manager
+from src.config.utils import get_ip_and_port_by_camera_name
 
 
 class DeviceInfoWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.lab_ip_value = None        # IP地址
+        self.cameras_ip_map = None
+        self.combo_device = None
         self.btn_cancel = None
         self.btn_ok = None
         self.init()
@@ -29,10 +33,10 @@ class DeviceInfoWidget(QtWidgets.QWidget):
 
         lab_device = QtWidgets.QLabel()
         lab_device.setText("设备列表")
-        combo_device = QtWidgets.QComboBox()
+        self.combo_device = QtWidgets.QComboBox()
         hlayout_1 = QtWidgets.QHBoxLayout()
         hlayout_1.addWidget(lab_device)
-        hlayout_1.addWidget(combo_device)
+        hlayout_1.addWidget(self.combo_device)
 
         lab_name = QtWidgets.QLabel()
         lab_name.setText("网卡")
@@ -60,11 +64,11 @@ class DeviceInfoWidget(QtWidgets.QWidget):
 
         lab_ip = QtWidgets.QLabel()
         lab_ip.setText("IP地址")
-        lab_ip_value = QtWidgets.QLabel()
-        lab_ip_value.setText("192.168.127.12")
+        self.lab_ip_value = QtWidgets.QLabel()
+        self.lab_ip_value.setText("192.168.127.12")
         hlayout_5 = QtWidgets.QHBoxLayout()
         hlayout_5.addWidget(lab_ip)
-        hlayout_5.addWidget(lab_ip_value)
+        hlayout_5.addWidget(self.lab_ip_value)
 
         lab_subnet_mask = QtWidgets.QLabel()
         lab_subnet_mask.setText("子网掩码")
@@ -83,7 +87,7 @@ class DeviceInfoWidget(QtWidgets.QWidget):
         hlayout_6.addWidget(lab_gateway_value)
 
         self.btn_ok = QtWidgets.QPushButton()
-        self.btn_ok.setText("切换")
+        self.btn_ok.setText("连接")
         self.btn_cancel = QtWidgets.QPushButton()
         self.btn_cancel.setText("取消")
         hlayout_7 = QtWidgets.QHBoxLayout()
@@ -111,14 +115,23 @@ class DeviceInfoWidget(QtWidgets.QWidget):
         self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
         self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
 
+    def refresh(self, cameras_ip_map):
+        """
+        刷新页面
+        """
+        self.combo_device.clear()
+        self.cameras_ip_map = cameras_ip_map
+        for name in self.cameras_ip_map:
+            self.combo_device.addItem(name)
+
     def on_btn_ok_clicked(self):
         """
         切换按钮槽函数
         """
-        signal_manager.sig_switch_device.emit(True)
+        signal_manager.sig_switch_device.emit(self.combo_device.currentText())
 
     def on_btn_cancel_clicked(self):
         """
         取消按钮槽函数
         """
-        signal_manager.sig_switch_device.emit(False)
+        signal_manager.sig_close_scheme_widget.emit()
