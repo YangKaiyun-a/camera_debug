@@ -24,11 +24,11 @@ class SimpleRegLCHandler(SampleRegLC.Iface):
         return timeStamp
 
     def DistributeOper(self, info):
-        print("🛠 收到任务:", info)
+        print("🛠 收到通用操作:", info)
         return 0
 
     def DistributeTask(self, info):
-        print("📦 收到通用操作:", info)
+        print("📦 收到任务:", info.taskId)
         return 1001
 
     def GetTaskInfo(self):
