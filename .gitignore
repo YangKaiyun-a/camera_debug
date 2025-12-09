@@ -18,3 +18,5 @@ device_config/schemes/
 thrift_interface/gen/hello/__pycache__/
 
 thrift_interface/gen/SampleReg_Interface_LC/__pycache__/
+
+thrift_interface/__pycache__/
