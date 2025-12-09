@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 
     def on_btn_switch_device_clicked(self):
         """
-        切换设备按钮槽函数
+        选择设备按钮槽函数
         """
         # 更新设备信息页面
         device_info_wgt = self.stackedWidget.widget(1)
@@ -135,12 +135,15 @@ class MainWindow(QMainWindow):
     def on_sig_switch_device(self, name):
         """
         处理切换设备的结果
-        result：切换/取消
+        name：设备名称
         """
         ip, port = get_ip_and_port_by_camera_name(name, self.cameras_ip_map)
         current_scheme, scheme_list = get_schemes(name)
 
         print(f"切换设备为：{name}, ip:{ip}, port:{port}")
+
+        # 调用 thrift 接口进行连接
+
 
         self.current_camera.camera_name = name
         self.current_camera.camera_ip = ip

@@ -126,7 +126,7 @@ class DeviceInfoWidget(QtWidgets.QWidget):
 
     def on_btn_ok_clicked(self):
         """
-        切换按钮槽函数
+        连接按钮槽函数
         """
         signal_manager.sig_switch_device.emit(self.combo_device.currentText())
 

@@ -1,5 +1,10 @@
 import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "thrift_interface", "gen")))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "thrift_interface", "gen")))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, BASE_DIR)
+
+GEN_DIR = os.path.join(BASE_DIR, "thrift_interface", "gen")
+sys.path.insert(0, GEN_DIR)
 
 
 from thrift_interface.gen.hello import HelloService
@@ -15,13 +20,16 @@ class SimpleRegLCHandler(SampleRegLC.Iface):
         print("✅ SimpleRegLC Server Initialized")
 
     def HeartbeatToLC(self, timeStamp):
+        print("SimpleRegLC Server Heartbeat toLC", timeStamp)
         return timeStamp
 
     def DistributeOper(self, info):
-        print("1")
+        print("🛠 收到任务:", info)
+        return 0
 
     def DistributeTask(self, info):
-        print("1")
+        print("📦 收到通用操作:", info)
+        return 1001
 
     def GetTaskInfo(self):
         print("1")
@@ -46,10 +54,14 @@ class HelloHandler(HelloService.Iface):
 # � 启动 Thrift 服务
 # =========================================================
 def main():
+    processor = SampleRegLC.Processor(SimpleRegLCHandler())
 
-    processor_1 = SampleRegLC.Processor(SimpleRegLCHandler())
+    service = ThriftService(
+        processor=processor,
+        port=9090,
+        worker_num=8
+    )
 
-    service = ThriftService([("processor_1", processor_1)], port=9090)
     service.start()
 
 
