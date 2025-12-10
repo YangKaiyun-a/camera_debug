@@ -20,8 +20,7 @@ class SimpleRegLCHandler(SampleRegLC.Iface):
         print("✅ SimpleRegLC Server Initialized")
 
     def HeartbeatToLC(self, timeStamp):
-        print("SimpleRegLC Server Heartbeat toLC", timeStamp)
-        return timeStamp
+        print("Received heartbeat ", timeStamp)
 
     def DistributeOper(self, info):
         print("🛠 收到通用操作:", info)
@@ -29,7 +28,7 @@ class SimpleRegLCHandler(SampleRegLC.Iface):
 
     def DistributeTask(self, info):
         print("📦 收到任务:", info.taskId)
-        return 1001
+        return 0
 
     def GetTaskInfo(self):
         print("1")

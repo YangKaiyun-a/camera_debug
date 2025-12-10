@@ -1,35 +1,26 @@
 import os
 import sys
 
+# 导入 thrift_interface 包路径
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+sys.path.insert(0, BASE_DIR)
+GEN_DIR = os.path.join(BASE_DIR, "thrift_interface", "gen")
+sys.path.insert(0, GEN_DIR)
+
+
+
+# print("========== 路径调试信息 ==========")
+#
+# # 当前 sys.path
+# print("\n当前 sys.path：")
+# for p in sys.path:
+#     print("  ", p)
+#
+# print("================================")
+
+
 from PyQt5.QtWidgets import QApplication
 from src.ui.main_window import MainWindow
-
-
-
-
-
-    # def on_btn_modify_ip_clicked(self):
-    #     if self.btn_ip.text() == "编辑":
-    #         self.btn_ip.setText("保存")
-    #         self.lineEdit_ip.setReadOnly(False)
-    #         self.lineEdit_ip.setFocus()
-    #         self.lineEdit_ip.setStyleSheet(
-    #             """
-    #             background-color: #ffffff;
-    #             border: 1px solid #0078d7;
-    #             border-radius: 4px;
-    #             """
-    #         )
-    #     elif self.btn_ip.text() == "保存":
-    #         self.lineEdit_ip.setReadOnly(True)
-    #         self.lineEdit_ip.setStyleSheet(
-    #             """
-    #             background: transparent;
-    #             border: none;
-    #             """
-    #         )
-    #         self.btn_ip.setText("编辑")
-
 
 
 

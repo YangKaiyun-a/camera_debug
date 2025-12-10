@@ -22,3 +22,5 @@ thrift_interface/gen/SampleReg_Interface_LC/__pycache__/
 thrift_interface/__pycache__/
 
 src/test/__pycache__/
+
+src/communication/__pycache__/

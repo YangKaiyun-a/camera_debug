@@ -16,6 +16,11 @@ class SignalManager(QObject):
     """
     sig_close_scheme_widget = pyqtSignal()
 
+    """
+    信号：连接状态改变
+    """
+    sig_connected_status = pyqtSignal(str, bool)
+
 
 
 # 实例化单例

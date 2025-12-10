@@ -1,29 +1,30 @@
 import os
-from PyQt5.QtWidgets import QMainWindow, QStackedWidget
+from PyQt5.QtWidgets import QMainWindow, QStackedWidget, QMessageBox
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QTimer
 from PyQt5.uic import loadUi
-
 
 from src.config.signal_manager import signal_manager
 from src.ui.scheme_edit_widget import SchemeEditWidget
 from src.ui.device_info_widget import DeviceInfoWidget
 from src.config.utils import get_all_cameras, get_ip_and_port_by_camera_name, CameraConfig, get_schemes
-from src.config.utils import load_camera_and_scheme_config
-import json
+from src.communication.camera_rpc_manager import CameraRpcManager
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         # 加载 UI 文件
-
         ui_path = os.path.join(os.path.dirname(__file__), "main_window.ui")
         loadUi(ui_path, self)
+
+
         self.cameras_ip_map = None                  # 相机名称与ip的映射
         self.current_camera = CameraConfig()        # 当前相机配置
         self.current_scheme = None                  # 当前方案
         self.anim = None
         self.stackedWidget = None
+        self.rpc = CameraRpcManager()               # 通信单例
 
         self.init()
 
@@ -67,6 +68,7 @@ class MainWindow(QMainWindow):
 
         signal_manager.sig_switch_device.connect(self.on_sig_switch_device)
         signal_manager.sig_close_scheme_widget.connect(self.on_close_scheme_widget)
+        signal_manager.sig_connected_status.connect(self.on_connected_status)
 
     def show_stackedWidget(self, visible):
         anim = QPropertyAnimation(self.stackedWidget, b"minimumWidth")
@@ -134,29 +136,51 @@ class MainWindow(QMainWindow):
 
     def on_sig_switch_device(self, name):
         """
-        处理切换设备的结果
+        处理切换设备的逻辑
         name：设备名称
         """
         ip, port = get_ip_and_port_by_camera_name(name, self.cameras_ip_map)
-        current_scheme, scheme_list = get_schemes(name)
 
-        print(f"切换设备为：{name}, ip:{ip}, port:{port}")
-
-        # 调用 thrift 接口进行连接
+        # 连接相机，槽函数中接收连接结果
+        self.rpc.connect_camera(name, ip, port)
 
 
-        self.current_camera.camera_name = name
-        self.current_camera.camera_ip = ip
-        self.current_camera.camera_port = port
-        self.current_camera.camera_current_scheme = current_scheme
-        self.current_camera.camera_scheme_list = scheme_list
 
-        # 刷新方案下拉框
-        self.comboBox_scheme.clear()
-        for scheme_config in scheme_list:
-            self.comboBox_scheme.addItem(scheme_config.scheme_name)
+    def on_connected_status(self, camera_name, status):
+        """
+        接收连接结果
+        """
 
-        self.comboBox_scheme.setCurrentText(current_scheme.scheme_name)
+        ip = self.rpc.get_ip()
+        port = self.rpc.get_port()
 
-        # 关闭右侧页面
-        self.show_stackedWidget(False)
+        if not status:
+            print(f"{camera_name}：连接失败")
+            QMessageBox.critical(self, "错误", f"{camera_name}连接失败：" + self.rpc.last_error())
+        else:
+            current_scheme, scheme_list = get_schemes(camera_name)
+
+            print(f"切换设备为：{camera_name}, ip:{ip}, port:{port}")
+
+            self.current_camera.camera_name = camera_name
+            self.current_camera.camera_ip = ip
+            self.current_camera.camera_port = port
+            self.current_camera.camera_current_scheme = current_scheme
+            self.current_camera.camera_scheme_list = scheme_list
+
+            # 刷新方案下拉框
+            self.comboBox_scheme.clear()
+            for scheme_config in scheme_list:
+                self.comboBox_scheme.addItem(scheme_config.scheme_name)
+
+            self.comboBox_scheme.setCurrentText(current_scheme.scheme_name)
+
+            # 关闭右侧页面
+            self.show_stackedWidget(False)
+
+
+
+
+
+
+

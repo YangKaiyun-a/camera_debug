@@ -137,7 +137,6 @@ class ThriftClient:
         try:
             fn(self.stub)
             return True
-
         except TException as e:
             self.error_msg = str(e)
         except Exception as e:

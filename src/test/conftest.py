@@ -11,7 +11,7 @@ def thrift_server():
     """
     print("✅ conftest.py 已加载，thrift 服务启动中...")
     t = threading.Thread(target=start_server, daemon=True)
-    t.start()
+    # t.start()
 
     time.sleep(1)  # 等待服务启动
     yield

@@ -14,27 +14,17 @@ def test_distribute():
 
     result_holder = {}
 
-    info = TaskInfo(
-        taskId="task_001",  # ✅ 必须是字符串
-        taskType=[0],  # ✅ 必须是 list
-        state=0,  # ✅ i32
-        mode=0,  # ✅ i32
-        imageIn=None,  # ✅ optional list → None
-        retCode=None,  # ✅ optional i32 → None
-        imageOut=None,  # ✅ optional list → None
-        result=None  # ✅ optional struct → None
-    )
-
     ok = client.call(
         "127.0.0.1",
         9090,
         SampleRegLC.Client,
         lambda stub: result_holder.update({
-            "ret": stub.DistributeTask(info)
+            "ret": stub.HeartbeatToLC(11)
         })
     )
 
     if ok:
-        print("✅ 服务端返回:", result_holder["ret"])
+        print("✅ 心跳发送成功（通信正常）")
     else:
-        print("❌ 调用失败:", client.error())
+        print("❌ 心跳发送失败:", client.error())
+
