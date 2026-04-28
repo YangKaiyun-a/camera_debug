@@ -1,7 +1,7 @@
 import threading
 import time
 import pytest
-from src.test.server import main as start_server
+from src.test.lc_server import main as start_server
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -7,20 +7,20 @@ GEN_DIR = os.path.join(BASE_DIR, "thrift_interface", "gen")
 sys.path.insert(0, GEN_DIR)
 
 
-from thrift_interface.gen.hello import HelloService
 from thrift_interface.gen.SampleReg_Interface_LC import SampleRegLC
 from src.thrift_helper import ThriftService
 
 
 # =========================================================
-# � 服务端 Handler 实现
+# � 下位机服务端 Handler 实现
 # =========================================================
 class SimpleRegLCHandler(SampleRegLC.Iface):
     def __init__(self):
         print("✅ SimpleRegLC Server Initialized")
 
     def HeartbeatToLC(self, timeStamp):
-        print("Received heartbeat ", timeStamp)
+        # print("Received heartbeat ", timeStamp)
+        pass
 
     def DistributeOper(self, info):
         print("🛠 收到通用操作:", info)
@@ -40,17 +40,9 @@ class SimpleRegLCHandler(SampleRegLC.Iface):
         print("1")
 
 
-class HelloHandler(HelloService.Iface):
-    def __init__(self):
-        print("✅ HelloService Server Initialized")
-
-    def sayHello(self, name):
-        print(f"收到客户端请求: {name}")
-        return f"你好, {name}! 来自 Thrift 服务端的问候～"
-
 
 # =========================================================
-# � 启动 Thrift 服务
+# � 启动下位机 Thrift 服务
 # =========================================================
 def main():
     processor = SampleRegLC.Processor(SimpleRegLCHandler())
@@ -58,7 +50,7 @@ def main():
     service = ThriftService(
         processor=processor,
         port=9090,
-        worker_num=8
+        # worker_num=8
     )
 
     service.start()

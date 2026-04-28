@@ -339,6 +339,7 @@ enum TaskType {
     TASK_GET_SAMPLE_SIZE = 11;                     // 获取样本量信息
     TASK_GET_SAMPLE_CENTRIFUGED = 12;              // 获取离心状态
     TASK_GET_SAMPLE_CENTRIFUGED_QUALITY = 13;      // 获取离心质量
+
     TASK_GET_TUBE_OVERHEAD_AXIS = 14;              // 获取俯拍试管坐标
     TASK_GET_TUBE_OVERHEAD = 15;                   // 获取俯拍试管有无
     TASK_GET_TUBE_OVERHEAD_COLOR = 16;             // 获取俯拍管帽颜色

@@ -6,6 +6,8 @@ from thrift_interface.gen.SampleReg_Interface_LC import SampleRegLC
 from src.thrift_helper import ThriftClient
 
 
+# 调用下位机服务 HeartbeatToLC
+
 def test_distribute():
     client = ThriftClient(
         transport_cls=TTransport.TBufferedTransport,

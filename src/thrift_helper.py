@@ -28,15 +28,21 @@ class ThriftService:
             transport_factory = TTransport.TBufferedTransportFactory()
             protocol_factory = TBinaryProtocol.TBinaryProtocolFactory()
 
-            # 线程池服务器
-            self.server = TServer.TThreadPoolServer(
+            # self.server = TServer.TThreadPoolServer(
+            #     self.processor,
+            #     sock,
+            #     transport_factory,
+            #     protocol_factory
+            # )
+
+            self.server = TServer.TSimpleServer(
                 self.processor,
                 sock,
                 transport_factory,
                 protocol_factory
             )
 
-            self.server.setNumThreads(self.worker_num)
+            # self.server.setNumThreads(self.worker_num)
 
             print(f"✅ thrift server start on {self.port}")
             self.server.serve()
