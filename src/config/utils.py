@@ -1,7 +1,7 @@
 import os
 import json
 import configparser
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 
 
 
@@ -33,11 +33,18 @@ class SchemeConfig:
 
 @dataclass
 class CameraConfig:
-    camera_name: str = ""                           # 相机名称
-    camera_ip: str = ""                             # 相机ip
-    camera_port: str = ""                           # 相机端口
-    camera_current_scheme: SchemeConfig = None      # 相机当前方案
-    camera_schemes: list = None                     # 相机所有方案
+    camera_name: str = ""
+    camera_ip: str = ""
+    camera_port: int = None
+    camera_current_scheme: SchemeConfig = field(default_factory=SchemeConfig)
+    camera_schemes: list = field(default_factory=list)
+
+    def clear(self):
+        self.camera_name = ""
+        self.camera_ip = ""
+        self.camera_port = None
+        self.camera_current_scheme = SchemeConfig()
+        self.camera_schemes.clear()
 
 
 
@@ -169,17 +176,17 @@ def get_schemes(camera_name: str):
     if section_name not in config:
         raise ValueError(f"未找到相机【{camera_name}】的方案配置")
 
-    # 1️⃣ 读取当前方案名
+    # 1️、读取当前方案名
     current_scheme_name = config[section_name].get("current_scheme", "").strip()
 
-    # 2️⃣ 读取方案列表
+    # 2、读取方案列表
     schemes_str = config[section_name].get("schemes", "")
     scheme_names = [s.strip() for s in schemes_str.split(",") if s.strip()]
 
     scheme_list: list[SchemeConfig] = []
     current_scheme: SchemeConfig | None = None
 
-    # 3️⃣ 逐个加载 json → SchemeConfig
+    # 3、逐个加载 json → SchemeConfig
     for scheme_name in scheme_names:
         json_path = os.path.join(SCHEME_DIR, scheme_name + ".json")
 
@@ -193,11 +200,11 @@ def get_schemes(camera_name: str):
 
         scheme_list.append(scheme)
 
-        # 4️⃣ 识别当前方案
+        # 4️、识别当前方案
         if scheme_name == current_scheme_name:
             current_scheme = scheme
 
-    # 5️⃣ 兜底逻辑（防止 ini 写错）
+    # 5️、兜底逻辑（防止 ini 写错）
     if current_scheme is None and scheme_list:
         print(f"⚠ 当前方案未找到，默认使用第一个方案: {scheme_list[0].scheme_name}")
         current_scheme = scheme_list[0]

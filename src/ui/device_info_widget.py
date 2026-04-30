@@ -6,9 +6,12 @@ from src.config.utils import get_ip_and_port_by_camera_name
 class DeviceInfoWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.lab_ip_value = None        # IP地址
+        self.lab_ip_value = None                # IP地址
+        self.lab_mac_value = None               # 物理地址
+        self.lab_subnet_mask_value = None       # 子网掩码
+        self.lab_gateway_value = None           # 网关
         self.cameras_ip_map = None
-        self.combo_device = None
+        self.combo_device = None                # 设备列表
         self.btn_cancel = None
         self.btn_ok = None
         self.init()
@@ -56,11 +59,11 @@ class DeviceInfoWidget(QtWidgets.QWidget):
 
         lab_mac = QtWidgets.QLabel()
         lab_mac.setText("物理地址")
-        lab_mac_value = QtWidgets.QLabel()
-        lab_mac_value.setText("34:BD:20:6B:61:14")
+        self.lab_mac_value = QtWidgets.QLabel()
+        self.lab_mac_value.setText("34:BD:20:6B:61:14")
         hlayout_4 = QtWidgets.QHBoxLayout()
         hlayout_4.addWidget(lab_mac)
-        hlayout_4.addWidget(lab_mac_value)
+        hlayout_4.addWidget(self.lab_mac_value)
 
         lab_ip = QtWidgets.QLabel()
         lab_ip.setText("IP地址")
@@ -72,19 +75,19 @@ class DeviceInfoWidget(QtWidgets.QWidget):
 
         lab_subnet_mask = QtWidgets.QLabel()
         lab_subnet_mask.setText("子网掩码")
-        lab_subnet_mask_value = QtWidgets.QLabel()
-        lab_subnet_mask_value.setText("255.255.255.0")
+        self.lab_subnet_mask_value = QtWidgets.QLabel()
+        self.lab_subnet_mask_value.setText("255.255.255.0")
         hlayout_6 = QtWidgets.QHBoxLayout()
         hlayout_6.addWidget(lab_subnet_mask)
-        hlayout_6.addWidget(lab_subnet_mask_value)
+        hlayout_6.addWidget(self.lab_subnet_mask_value)
 
         lab_gateway = QtWidgets.QLabel()
         lab_gateway.setText("网关")
-        lab_gateway_value = QtWidgets.QLabel()
-        lab_gateway_value.setText("192.168.127.1")
+        self.lab_gateway_value = QtWidgets.QLabel()
+        self.lab_gateway_value.setText("192.168.127.1")
         hlayout_6 = QtWidgets.QHBoxLayout()
         hlayout_6.addWidget(lab_gateway)
-        hlayout_6.addWidget(lab_gateway_value)
+        hlayout_6.addWidget(self.lab_gateway_value)
 
         self.btn_ok = QtWidgets.QPushButton()
         self.btn_ok.setText("连接")
@@ -112,8 +115,8 @@ class DeviceInfoWidget(QtWidgets.QWidget):
         outer_layout.addWidget(main_widget)
         
     def init_slots(self):
-        self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
-        self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
+        self.btn_ok.clicked.connect(self.handle_ok_clicked)
+        self.btn_cancel.clicked.connect(self.handle_cancel_clicked)
 
     def refresh(self, cameras_ip_map):
         """
@@ -124,13 +127,13 @@ class DeviceInfoWidget(QtWidgets.QWidget):
         for name in self.cameras_ip_map:
             self.combo_device.addItem(name)
 
-    def on_btn_ok_clicked(self):
+    def handle_ok_clicked(self):
         """
         连接按钮槽函数
         """
         signal_manager.sig_switch_device.emit(self.combo_device.currentText())
 
-    def on_btn_cancel_clicked(self):
+    def handle_cancel_clicked(self):
         """
         取消按钮槽函数
         """

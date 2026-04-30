@@ -5,6 +5,7 @@ from thrift.protocol import TBinaryProtocol
 import time
 
 from src.config.signal_manager import signal_manager
+from src.config.utils import CameraConfig, get_schemes
 from src.thrift_helper import ThriftClient
 from thrift_interface.gen.SampleReg_Interface_LC import SampleRegLC
 
@@ -31,11 +32,8 @@ class CameraRpcManager:
             protocol_cls=TBinaryProtocol.TBinaryProtocol
         )
 
-        self.camera_name = None
-        self.ip = None
-        self.port = None
+        self.current_camera = CameraConfig()    # 当前相机的所有配置（整个程序唯一一份）
         self.connected = False                  # 连接状态
-        self.failed_count = 0                   # 心跳失败次数
         self._heartbeat_thread = None
         self._heartbeat_running = False
 
@@ -49,9 +47,9 @@ class CameraRpcManager:
         ok = self.client.init(ip, port, SampleRegLC.Client)
 
         if ok:
-            self.camera_name = name
-            self.ip = ip
-            self.port = port
+            self.current_camera.camera_name = name
+            self.current_camera.camera_ip = ip
+            self.current_camera.camera_port = port
 
             # 启动心跳线程
             self._heartbeat_running = True
@@ -63,22 +61,25 @@ class CameraRpcManager:
         else:
             signal_manager.sig_connected_status.emit(name, False)
 
+
     # =====================================================
     # ✅ 断开连接，必须保证所有资源全部清空
     # =====================================================
     def disconnect(self):
         self._heartbeat_running = False
         self.client.release()
-        self.camera_name = None
-        self.ip = None
-        self.port = None
+        self.current_camera.clear()
         self.connected = False
-        self.failed_count = 0
+
 
     # =====================================================
     # ✅ 持续发送心跳
+    #
+    #    目前重连机制没做，因为当前采用一个客户端长连接模式，
+    #    重连机制需要重新创建新客户端，适合短连接模式
     # =====================================================
     def _heartbeat_loop(self):
+
         while self._heartbeat_running:
             timestamp = int(time.time() * 1000)
 
@@ -87,20 +88,23 @@ class CameraRpcManager:
             )
 
             if ok:
-                print("心跳成功")
                 if not self.connected:
                     self.connected = True
-                    self.failed_count = 0
-                    signal_manager.sig_connected_status.emit(self.camera_name, True)
+
+                    # 填充 CameraConfig 结构体，获取其方案等数据
+                    current_scheme, scheme_list = get_schemes(self.current_camera.camera_name)
+                    self.current_camera.camera_current_scheme = current_scheme
+                    self.current_camera.camera_schemes = scheme_list
+
+                    signal_manager.sig_connected_status.emit(True)
             else:
-                self.failed_count += 1
-                if self.failed_count >= 3:
-                    self._heartbeat_running = False
-                    signal_manager.sig_connected_status.emit(self.camera_name, False)
-                    self.disconnect()
-                    return
+                self._heartbeat_running = False
+                signal_manager.sig_connected_status.emit(False)
+                self.disconnect()
+                return
 
             time.sleep(1)
+
 
     # =====================================================
     # ✅ 下发任务
@@ -113,10 +117,13 @@ class CameraRpcManager:
             lambda stub: stub.DistributeTask(task_info)
         )
 
-        if not ok:
-            self.connected = False
+        if ok:
+            print("✅ 调用成功:")
+        else:
+            print("❌ 调用失败:")
 
         return ok
+
 
     # =====================================================
     # ✅ 查询任务状态
@@ -134,10 +141,10 @@ class CameraRpcManager:
         )
 
         if not ok:
-            self.connected = False
             return None
 
         return result_holder["ret"]
+
 
     # =====================================================
     # ✅ 查询设备状态
@@ -155,10 +162,10 @@ class CameraRpcManager:
         )
 
         if not ok:
-            self.connected = False
             return None
 
         return result_holder["ret"]
+
 
     # =====================================================
     # ✅ 获取错误信息
@@ -166,14 +173,36 @@ class CameraRpcManager:
     def last_error(self):
         return self.client.error()
 
+
     # =====================================================
     # ✅ 获取相机名称
     # =====================================================
     def get_camera_name(self):
-        return self.camera_name
+        return self.current_camera.camera_name
 
+    # =====================================================
+    # ✅ 获取相机首选方案
+    # =====================================================
+    def get_camera_current_scheme(self):
+        return self.current_camera.camera_current_scheme
+
+
+    # =====================================================
+    # ✅ 获取相机所有方案
+    # =====================================================
+    def get_camera_camera_schemes(self):
+        return self.current_camera.camera_schemes
+
+
+    # =====================================================
+    # ✅ 获取相机IP
+    # =====================================================
     def get_ip(self):
-        return self.ip
+        return self.current_camera.camera_ip
 
+
+    # =====================================================
+    # ✅ 获取相机端口
+    # =====================================================
     def get_port(self):
-        return self.port
+        return self.current_camera.camera_port

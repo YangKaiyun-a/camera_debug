@@ -18,8 +18,9 @@ class SignalManager(QObject):
 
     """
     信号：连接状态改变
+    参数1：True 连接成功， False 连接失败
     """
-    sig_connected_status = pyqtSignal(str, bool)
+    sig_connected_status = pyqtSignal(bool)
 
 
 

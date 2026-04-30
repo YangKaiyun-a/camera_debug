@@ -145,6 +145,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         lab_white_balance_B.setText("B")
         self.edit_white_balance_B = QtWidgets.QLineEdit()
         self.edit_white_balance_B.setText(self.scheme.white_balance_B)
+
         hlayout_6 = QtWidgets.QHBoxLayout()
         hlayout_6.addWidget(lab_white_balance_R)
         hlayout_6.addWidget(self.edit_white_balance_R)
@@ -199,9 +200,9 @@ class SchemeEditWidget(QtWidgets.QWidget):
 
 
     def init_slots(self):
-        self.btn_ok.clicked.connect(self.on_btn_ok_clicked)
-        self.btn_cancel.clicked.connect(self.on_btn_cancel_clicked)
-        self.btn_image_path.clicked.connect(self.on_btn_image_path_clicked)
+        self.btn_ok.clicked.connect(self.handle_ok_clicked)
+        self.btn_cancel.clicked.connect(self.handle_cancel_clicked)
+        self.btn_image_path.clicked.connect(self.handle_image_path_clicked)
 
     def refresh(self, scheme):
         """
@@ -235,7 +236,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         # 强制刷新 UI
         self.update()
 
-    def on_btn_ok_clicked(self):
+    def handle_ok_clicked(self):
         """
         保存按钮槽函数
         TODO: 保存到相机中
@@ -264,13 +265,13 @@ class SchemeEditWidget(QtWidgets.QWidget):
             QMessageBox.critical(self, "保存失败", "方案保存失败")
 
 
-    def on_btn_cancel_clicked(self):
+    def handle_cancel_clicked(self):
         """
         取消按钮槽函数
         """
         signal_manager.sig_close_scheme_widget.emit()
 
-    def on_btn_image_path_clicked(self):
+    def handle_image_path_clicked(self):
         """
         选择存图路径按钮槽函数
         """
