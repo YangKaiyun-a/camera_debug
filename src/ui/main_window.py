@@ -21,7 +21,6 @@ class MainWindow(QMainWindow):
 
 
         self.cameras_ip_map = None                  # 相机名称与ip的映射
-        self.current_scheme = None                  # 当前方案
         self.anim = None
         self.paramStackedWidget = None              # 右侧参数页面
         self.rpc = CameraRpcManager()               # 通信单例
@@ -127,16 +126,18 @@ class MainWindow(QMainWindow):
 
         # 更新方案编辑页面
         scheme_edit_wgt = self.paramStackedWidget.widget(0)
-        scheme_edit_wgt.refresh(self.current_camera.camera_current_scheme)
+        scheme_edit_wgt.refresh(scheme_name)
 
         self.paramStackedWidget.setCurrentIndex(0)
         self.show_paramStackedWidget(True)
+
 
     def on_close_scheme_widget(self):
         """
         关闭右侧编辑页面
         """
         self.show_paramStackedWidget(False)
+
 
     def handle_switch_device_clicked(self):
         """
@@ -149,6 +150,7 @@ class MainWindow(QMainWindow):
         self.paramStackedWidget.setCurrentIndex(1)
         self.show_paramStackedWidget(True)
 
+
     def on_sig_switch_device(self, name):
         """
         处理切换设备的逻辑
@@ -158,7 +160,6 @@ class MainWindow(QMainWindow):
 
         # 连接相机，槽函数中接收连接结果
         self.rpc.connect_camera(name, ip, port)
-
 
 
     def on_connected_status(self, status):
@@ -171,12 +172,13 @@ class MainWindow(QMainWindow):
         error_msg = self.rpc.last_error()
 
         if not status:
-            print(f"Connect Failed, {camera_name}, {ip}:{port}, {error_msg}")
+            print(f"Connect Failed, {camera_name}, {error_msg}")
             QMessageBox.critical(self, "错误", f"{camera_name}连接失败：" + error_msg)
+            self.rpc.disconnect()
         else:
             print(f"Connect Success, {camera_name}, {ip}:{port}")
 
-            scheme_list = self.rpc.get_camera_camera_schemes()
+            scheme_list = self.rpc.get_camera_all_schemes()
             current_scheme = self.rpc.get_camera_current_scheme()
 
             # 更新当前设备QLabel
@@ -185,8 +187,8 @@ class MainWindow(QMainWindow):
             # 更新comboBox_scheme
             self.comboBox_scheme.clear()
             for scheme in scheme_list:
-                self.comboBox_scheme.addItem(scheme.scheme_name)
-            self.comboBox_scheme.setCurrentText(current_scheme.scheme_name)
+                self.comboBox_scheme.addItem(scheme)
+            self.comboBox_scheme.setCurrentText(current_scheme)
 
             # 关闭右侧页面
             self.show_paramStackedWidget(False)

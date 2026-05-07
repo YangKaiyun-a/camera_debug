@@ -8,13 +8,16 @@ from dataclasses import dataclass, asdict, field
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 DEVICE_CONFIG_DIR = os.path.join(BASE_DIR, "device_config")
-CAMERA_INI_PATH = os.path.join(DEVICE_CONFIG_DIR, "cameras.ini")
-SCHEME_DIR = os.path.join(DEVICE_CONFIG_DIR, "schemes")
+CAMERA_INI_PATH = os.path.join(DEVICE_CONFIG_DIR, "cameras.ini")    # cameras.ini 文件路径
+SCHEME_DIR = os.path.join(DEVICE_CONFIG_DIR, "schemes")             # schemesi 文件夹路径
 
 
 
 @dataclass
 class SchemeConfig:
+    """
+    这个类仅用于临时存储方案数据
+    """
     exposure_time: int = 0              # 曝光时间
     gain: int = 0                       # 增益
     focal_length_step: int = 0          # 焦距步进
@@ -33,55 +36,34 @@ class SchemeConfig:
 
 @dataclass
 class CameraConfig:
-    camera_name: str = ""
-    camera_ip: str = ""
-    camera_port: int = None
-    camera_current_scheme: SchemeConfig = field(default_factory=SchemeConfig)
-    camera_schemes: list = field(default_factory=list)
+    name: str = ""
+    ip: str = ""
+    port: int = None
+    current_scheme: str = ""                         # 当前方案名称
+    schemes: list = field(default_factory=list)      # 所有方案名称
 
     def clear(self):
-        self.camera_name = ""
-        self.camera_ip = ""
-        self.camera_port = None
-        self.camera_current_scheme = SchemeConfig()
-        self.camera_schemes.clear()
+        self.name = ""
+        self.ip = ""
+        self.port = None
+        self.current_scheme = ""
+        self.schemes.clear()
 
 
 
 def get_all_cameras():
     """
-    获取所有相机的名称、ip、端口
-    TODO: 后续更改为从 thrift 接口获取
+    从配置文件中获取所有相机的名称、ip、端口
+    Return: cameras_ip_map
+        key1: cam1
+        value1: 127.0.0.1:9090
+        key2: cam2
+        value2: 127.0.0.1:9090
     """
     config = configparser.ConfigParser()
     config.read(CAMERA_INI_PATH, encoding="utf-8")
     cameras_ip_map = dict(config["cameras"])
     return cameras_ip_map
-
-
-
-def load_camera_and_scheme_config():
-    """
-    加载配置文件
-    """
-    config = configparser.ConfigParser()
-    config.read(CAMERA_INI_PATH, encoding="utf-8")
-
-    cameras = dict(config["cameras"])
-
-    default_camera = ""
-    if "global" in config:
-        default_camera = config["global"].get("default_camera", "")
-
-    camera_schemes = {}
-    for section in config.sections():
-        if section.startswith("schemes."):
-            cam_name = section.split(".", 1)[1]
-            schemes_str = config[section].get("schemes", "")
-            scheme_list = [s.strip() for s in schemes_str.split(",") if s.strip()]
-            camera_schemes[cam_name] = scheme_list
-
-    return cameras, camera_schemes, default_camera
 
 
 def load_scheme_from_file(json_path):
@@ -112,30 +94,30 @@ def load_scheme_from_file(json_path):
     )
 
 
-def save_scheme_config(scheme):
+def save_scheme_config(scheme_config):
     """
     将 SchemeConfig 保存为 JSON 文件
     """
     # 1. 校验 scheme_path
-    if not scheme.scheme_path:
+    if not scheme_config.scheme_path:
         raise ValueError("scheme_path 不能为空！")
 
     # 自动创建目录
-    if not os.path.exists(scheme.scheme_path):
-        os.makedirs(scheme.scheme_path)
+    if not os.path.exists(scheme_config.scheme_path):
+        os.makedirs(scheme_config.scheme_path)
 
     # 2. 校验方案名称
-    if not scheme.scheme_name:
+    if not scheme_config.scheme_name:
         raise ValueError("scheme_name 不能为空！")
 
     # 3. 生成完整路径
     file_path = os.path.join(
-        scheme.scheme_path,
-        scheme.scheme_name + ".json"
+        scheme_config.scheme_path,
+        scheme_config.scheme_name + ".json"
     )
 
     # 4. 将 dataclass 转换为字典
-    scheme_dict = asdict(scheme)
+    scheme_dict = asdict(scheme_config)
 
     # 5. 写入 JSON
     try:
@@ -166,7 +148,7 @@ def get_ip_and_port_by_camera_name(cam_name, cameras: dict):
 def get_schemes(camera_name: str):
     """
     获取当前相机的当前方案与备选方案
-    TODO: 后续会与 thrift 接口结合
+    Return: current_scheme_name, scheme_list
     """
     config = configparser.ConfigParser()
     config.read(CAMERA_INI_PATH, encoding="utf-8")
@@ -181,34 +163,52 @@ def get_schemes(camera_name: str):
 
     # 2、读取方案列表
     schemes_str = config[section_name].get("schemes", "")
-    scheme_names = [s.strip() for s in schemes_str.split(",") if s.strip()]
+    scheme_list = [s.strip() for s in schemes_str.split(",") if s.strip()]
 
-    scheme_list: list[SchemeConfig] = []
-    current_scheme: SchemeConfig | None = None
+    # 3、兜底逻辑（防止 ini 写错）
+    if current_scheme_name is None and scheme_list:
+        print(f"⚠ 当前方案未找到，默认使用第一个方案: {scheme_list[0]}")
+        current_scheme_name = scheme_list[0]
 
-    # 3、逐个加载 json → SchemeConfig
-    for scheme_name in scheme_names:
-        json_path = os.path.join(SCHEME_DIR, scheme_name + ".json")
+    return current_scheme_name, scheme_list
 
-        scheme = load_scheme_from_file(json_path)
-        if not scheme:
-            print(f"⚠ 方案文件不存在或解析失败: {json_path}")
-            continue
 
-        scheme.scheme_name = scheme_name
-        scheme.scheme_path = SCHEME_DIR
+def get_scheme_config_by_name(scheme_name: str) -> SchemeConfig | None:
+    """
+    根据方案名称，从文件中获取配置并返回 SchemeConfig 结构体
+    Args:
+        scheme_name:
+    Returns:
+        SchemeConfig | None
+    """
+    if not scheme_name:
+        print(f"解析失败方案文件名为空")
+        return None
 
-        scheme_list.append(scheme)
+    json_path = os.path.join(SCHEME_DIR, scheme_name + ".json")
 
-        # 4️、识别当前方案
-        if scheme_name == current_scheme_name:
-            current_scheme = scheme
+    scheme_config = load_scheme_from_file(json_path)
+    if not scheme_config:
+        print(f"方案文件不存在或解析失败: {json_path}")
+        return None
 
-    # 5️、兜底逻辑（防止 ini 写错）
-    if current_scheme is None and scheme_list:
-        print(f"⚠ 当前方案未找到，默认使用第一个方案: {scheme_list[0].scheme_name}")
-        current_scheme = scheme_list[0]
+    return scheme_config
 
-    return current_scheme, scheme_list
+
+
+
+
+def main():
+    current_scheme_name, scheme_list = get_schemes("cam2")
+    print(current_scheme_name)
+    print(scheme_list)
+
+    scheme_config = get_scheme_config_by_name(current_scheme_name)
+    print(scheme_config)
+
+
+
+if __name__ == "__main__":
+    main()
 
 

@@ -32,7 +32,7 @@ class CameraRpcManager:
             protocol_cls=TBinaryProtocol.TBinaryProtocol
         )
 
-        self.current_camera = CameraConfig()    # 当前相机的所有配置（整个程序唯一一份）
+        self.camera_config = CameraConfig()    # 当前相机的所有配置（整个程序唯一一份）
         self.connected = False                  # 连接状态
         self._heartbeat_thread = None
         self._heartbeat_running = False
@@ -44,13 +44,13 @@ class CameraRpcManager:
     def connect_camera(self, name: str, ip: str, port: int):
         self.disconnect()
 
+        self.camera_config.name = name
+        self.camera_config.ip = ip
+        self.camera_config.port = port
+
         ok = self.client.init(ip, port, SampleRegLC.Client)
 
         if ok:
-            self.current_camera.camera_name = name
-            self.current_camera.camera_ip = ip
-            self.current_camera.camera_port = port
-
             # 启动心跳线程
             self._heartbeat_running = True
             self._heartbeat_thread = threading.Thread(
@@ -59,7 +59,7 @@ class CameraRpcManager:
             )
             self._heartbeat_thread.start()
         else:
-            signal_manager.sig_connected_status.emit(name, False)
+            signal_manager.sig_connected_status.emit(False)
 
 
     # =====================================================
@@ -68,7 +68,7 @@ class CameraRpcManager:
     def disconnect(self):
         self._heartbeat_running = False
         self.client.release()
-        self.current_camera.clear()
+        self.camera_config.clear()
         self.connected = False
 
 
@@ -91,10 +91,10 @@ class CameraRpcManager:
                 if not self.connected:
                     self.connected = True
 
-                    # 填充 CameraConfig 结构体，获取其方案等数据
-                    current_scheme, scheme_list = get_schemes(self.current_camera.camera_name)
-                    self.current_camera.camera_current_scheme = current_scheme
-                    self.current_camera.camera_schemes = scheme_list
+                    # 填充 self.camera_config，获取当前相机的当前方案与备选方案
+                    current_scheme, scheme_list = get_schemes(self.camera_config.name)
+                    self.camera_config.current_scheme = current_scheme
+                    self.camera_config.schemes = scheme_list
 
                     signal_manager.sig_connected_status.emit(True)
             else:
@@ -178,31 +178,31 @@ class CameraRpcManager:
     # ✅ 获取相机名称
     # =====================================================
     def get_camera_name(self):
-        return self.current_camera.camera_name
+        return self.camera_config.name
 
     # =====================================================
     # ✅ 获取相机首选方案
     # =====================================================
     def get_camera_current_scheme(self):
-        return self.current_camera.camera_current_scheme
+        return self.camera_config.current_scheme
 
 
     # =====================================================
     # ✅ 获取相机所有方案
     # =====================================================
-    def get_camera_camera_schemes(self):
-        return self.current_camera.camera_schemes
+    def get_camera_all_schemes(self):
+        return self.camera_config.schemes
 
 
     # =====================================================
     # ✅ 获取相机IP
     # =====================================================
     def get_ip(self):
-        return self.current_camera.camera_ip
+        return self.camera_config.ip
 
 
     # =====================================================
     # ✅ 获取相机端口
     # =====================================================
     def get_port(self):
-        return self.current_camera.camera_port
+        return self.camera_config.port

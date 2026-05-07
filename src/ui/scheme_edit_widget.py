@@ -2,7 +2,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QMessageBox
 
 from src.config.signal_manager import signal_manager
-from src.config.utils import SchemeConfig, save_scheme_config
+from src.config.utils import SchemeConfig, save_scheme_config, get_scheme_config_by_name
 from thrift_interface.gen.SampleReg_Defs import ttypes
 
 
@@ -51,7 +51,7 @@ class CollapsibleSection(QtWidgets.QWidget):
 class SchemeEditWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.scheme = SchemeConfig()            # 保存结构体
+        self.scheme_config = SchemeConfig()     # 结构体
         self.edit_white_balance_B = None        # B
         self.edit_white_balance_G = None        # G
         self.edit_white_balance_R = None        # R
@@ -61,7 +61,7 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.spin_exposure_time = None          # 曝光时间
         self.lab_image_path = None              # 存图路径
         self.btn_image_path = None
-        self.tool_checkboxes = []             # 收集所有工具
+        self.tool_checkboxes = []               # 收集所有工具
         self.btn_cancel = None
         self.btn_ok = None
         self.init()
@@ -96,7 +96,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         lab_exposure_time = QtWidgets.QLabel()
         lab_exposure_time.setText("曝光时间")
         self.spin_exposure_time = QtWidgets.QSpinBox()
-        self.spin_exposure_time.setValue(self.scheme.exposure_time)
         hlayout_1 = QtWidgets.QHBoxLayout()
         hlayout_1.addWidget(lab_exposure_time)
         hlayout_1.addWidget(self.spin_exposure_time)
@@ -104,7 +103,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         lab_add = QtWidgets.QLabel()
         lab_add.setText("增益")
         self.spin_add = QtWidgets.QSpinBox()
-        self.spin_add.setValue(self.scheme.gain)
         hlayout_2 = QtWidgets.QHBoxLayout()
         hlayout_2.addWidget(lab_add)
         hlayout_2.addWidget(self.spin_add)
@@ -112,7 +110,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         lab_focal_length = QtWidgets.QLabel()
         lab_focal_length.setText("焦距步进")
         self.spin_focal_length = QtWidgets.QSpinBox()
-        self.spin_focal_length.setValue(self.scheme.focal_length_step)
         hlayout_3 = QtWidgets.QHBoxLayout()
         hlayout_3.addWidget(lab_focal_length)
         hlayout_3.addWidget(self.spin_focal_length)
@@ -120,7 +117,6 @@ class SchemeEditWidget(QtWidgets.QWidget):
         lab_focal_point = QtWidgets.QLabel()
         lab_focal_point.setText("焦点位置")
         self.spin_focal_point = QtWidgets.QSpinBox()
-        self.spin_focal_point.setValue(self.scheme.focal_point)
         hlayout_4 = QtWidgets.QHBoxLayout()
         hlayout_4.addWidget(lab_focal_point)
         hlayout_4.addWidget(self.spin_focal_point)
@@ -136,15 +132,12 @@ class SchemeEditWidget(QtWidgets.QWidget):
         lab_white_balance_R = QtWidgets.QLabel()
         lab_white_balance_R.setText("R")
         self.edit_white_balance_R = QtWidgets.QLineEdit()
-        self.edit_white_balance_R.setText(self.scheme.white_balance_R)
         lab_white_balance_G = QtWidgets.QLabel()
         lab_white_balance_G.setText("G")
         self.edit_white_balance_G = QtWidgets.QLineEdit()
-        self.edit_white_balance_G.setText(self.scheme.white_balance_G)
         lab_white_balance_B = QtWidgets.QLabel()
         lab_white_balance_B.setText("B")
         self.edit_white_balance_B = QtWidgets.QLineEdit()
-        self.edit_white_balance_B.setText(self.scheme.white_balance_B)
 
         hlayout_6 = QtWidgets.QHBoxLayout()
         hlayout_6.addWidget(lab_white_balance_R)
@@ -169,16 +162,14 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.btn_image_path.setFixedSize(90, 25)
         self.btn_image_path.setText("选择存图路径")
         self.lab_image_path = QtWidgets.QLabel()
-        self.lab_image_path.setText("存图路径")
         hlayout_7 = QtWidgets.QHBoxLayout()
         hlayout_7.addWidget(self.btn_image_path)
         hlayout_7.addWidget(self.lab_image_path)
 
-
-        self.btn_ok = QtWidgets.QPushButton()
-        self.btn_ok.setText("保存")
         self.btn_cancel = QtWidgets.QPushButton()
         self.btn_cancel.setText("取消")
+        self.btn_ok = QtWidgets.QPushButton()
+        self.btn_ok.setText("保存")
         hlayout_8 = QtWidgets.QHBoxLayout()
         hlayout_8.addWidget(self.btn_ok)
         hlayout_8.addWidget(self.btn_cancel)
@@ -204,31 +195,35 @@ class SchemeEditWidget(QtWidgets.QWidget):
         self.btn_cancel.clicked.connect(self.handle_cancel_clicked)
         self.btn_image_path.clicked.connect(self.handle_image_path_clicked)
 
-    def refresh(self, scheme):
+    def refresh(self, scheme_name):
         """
-        刷新页面
+        从文件中获取参数，并刷新页面
         """
-        if not isinstance(scheme, SchemeConfig):
+
+        # 获取参数
+        scheme_config = get_scheme_config_by_name(scheme_name)
+        if not scheme_config:
             return
 
-        self.scheme = scheme  # 更新内部结构体
+
+        self.scheme_config = scheme_config  # 更新内部结构体
 
         # ----------- 更新数值控件 -----------
-        self.spin_exposure_time.setValue(scheme.exposure_time)
-        self.spin_add.setValue(scheme.gain)
-        self.spin_focal_length.setValue(scheme.focal_length_step)
-        self.spin_focal_point.setValue(scheme.focal_point)
+        self.spin_exposure_time.setValue(self.scheme_config.exposure_time)
+        self.spin_add.setValue(self.scheme_config.gain)
+        self.spin_focal_length.setValue(self.scheme_config.focal_length_step)
+        self.spin_focal_point.setValue(self.scheme_config.focal_point)
 
         # ----------- 白平衡 -----------
-        self.edit_white_balance_R.setText(scheme.white_balance_R)
-        self.edit_white_balance_G.setText(scheme.white_balance_G)
-        self.edit_white_balance_B.setText(scheme.white_balance_B)
+        self.edit_white_balance_R.setText(self.scheme_config.white_balance_R)
+        self.edit_white_balance_G.setText(self.scheme_config.white_balance_G)
+        self.edit_white_balance_B.setText(self.scheme_config.white_balance_B)
 
         # ----------- 更新存图路径 -----------
-        self.lab_image_path.setText(scheme.image_path)
+        self.lab_image_path.setText(self.scheme_config.image_path)
 
         # ----------- 更新工具勾选状态 -----------
-        tools_set = set(scheme.tools or [])
+        tools_set = set(self.scheme_config.tools or [])
 
         for cb in self.tool_checkboxes:
             cb.setChecked(cb.enum_value in tools_set)
@@ -239,24 +234,23 @@ class SchemeEditWidget(QtWidgets.QWidget):
     def handle_ok_clicked(self):
         """
         保存按钮槽函数
-        TODO: 保存到相机中
         """
         # 组合结构体
-        self.scheme.exposure_time = self.spin_exposure_time.value()
-        self.scheme.gain = self.spin_add.value()
-        self.scheme.focal_length_step = self.spin_focal_length.value()
-        self.scheme.focal_point = self.spin_focal_point.value()
+        self.scheme_config.exposure_time = self.spin_exposure_time.value()
+        self.scheme_config.gain = self.spin_add.value()
+        self.scheme_config.focal_length_step = self.spin_focal_length.value()
+        self.scheme_config.focal_point = self.spin_focal_point.value()
 
-        self.scheme.white_balance_R = self.edit_white_balance_R.text()
-        self.scheme.white_balance_G = self.edit_white_balance_G.text()
-        self.scheme.white_balance_B = self.edit_white_balance_B.text()
+        self.scheme_config.white_balance_R = self.edit_white_balance_R.text()
+        self.scheme_config.white_balance_G = self.edit_white_balance_G.text()
+        self.scheme_config.white_balance_B = self.edit_white_balance_B.text()
 
         selected_tools = [ cb.enum_value for cb in self.tool_checkboxes if cb.isChecked()]
-        self.scheme.tools = selected_tools
-        self.scheme.image_path = self.lab_image_path.text()
+        self.scheme_config.tools = selected_tools
+        self.scheme_config.image_path = self.lab_image_path.text()
 
         # 保存
-        ok, msg = save_scheme_config(self.scheme)
+        ok, msg = save_scheme_config(self.scheme_config)
 
         if ok:
             QMessageBox.information(self, "成功", "方案保存成功")
